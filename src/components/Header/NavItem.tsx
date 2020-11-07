@@ -2,18 +2,16 @@ import React from 'react';
 import styled from 'styled-components';
 import { NavLink } from 'react-router-dom';
 
-interface Props {
+interface IProps {
   label?: string;
   icon: string;
   to: string;
-  active?: boolean;
 }
 
-interface IContainerProps {
-  active: Props['active'];
-}
-
-const Container = styled(NavLink)<IContainerProps>`
+const Container = styled(NavLink).attrs(() => ({
+  exact: true,
+  activeClassName: 'active',
+}))`
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -23,14 +21,10 @@ const Container = styled(NavLink)<IContainerProps>`
   transition: opacity 0.2s;
   color: #fff;
   text-decoration: none;
+  opacity: 0.4;
 
-  ${({ active }) =>
-    !active &&
-    `
-    opacity: .7;
-  `}
-
-  &:hover {
+  &:hover,
+  &.active {
     opacity: 1;
   }
 `;
@@ -40,13 +34,12 @@ const Icon = styled.img`
 `;
 
 const Label = styled.p`
-  font-weight: bold;
   margin: 7px 0;
 `;
 
-export default function NavItem({ to, icon, label, active }: Props) {
+export default function NavItem({ to, icon, label }: IProps) {
   return (
-    <Container to={to} active={active}>
+    <Container to={to}>
       <Icon src={icon} />
       <Label>{label}</Label>
     </Container>

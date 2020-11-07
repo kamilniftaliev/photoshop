@@ -13,9 +13,16 @@ const GlobalStyles = createGlobalStyle`
   }
 `;
 
+const Container = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+`;
+
 function App() {
   return (
-    <div>
+    <Container>
       <Router>
         <Header />
         <Switch>
@@ -29,7 +36,7 @@ function App() {
       </Router>
 
       <GlobalStyles />
-    </div>
+    </Container>
   );
 }
 
