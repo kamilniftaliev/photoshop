@@ -4,10 +4,14 @@ import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import styled, { createGlobalStyle } from 'styled-components';
 import { Provider } from 'react-redux';
 
+// Components
 import Header from './components/Header';
 import Draw from './components/Draw';
 import Statistics from './components/Statistics';
+
 import store from './store';
+
+import { SessionModal } from 'modals';
 
 const GlobalStyles = createGlobalStyle`
   :root {
@@ -25,9 +29,10 @@ const GlobalStyles = createGlobalStyle`
     --panels-background-color: #eff5fe;
   }
 
-  svg,
-  svg g,
-  svg path {
+  // I wish I could use :is or :where :)
+  svg:not(.MuiSvgIcon-root),
+  svg:not(.MuiSvgIcon-root) g,
+  svg:not(.MuiSvgIcon-root) path {
     fill: var(--text-color);
   }
 `;
@@ -54,6 +59,7 @@ function App() {
             </Route>
           </Switch>
         </Router>
+        <SessionModal />
       </Provider>
 
       <GlobalStyles />

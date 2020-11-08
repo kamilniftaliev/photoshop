@@ -2,9 +2,14 @@ import React from 'react';
 import styled from 'styled-components';
 import { NavLink } from 'react-router-dom';
 
+interface IconProps {
+  width: number;
+  height: number;
+}
+
 interface IProps {
   label?: string;
-  Icon: React.FC;
+  Icon: React.FC<IconProps>;
   to: string;
 }
 

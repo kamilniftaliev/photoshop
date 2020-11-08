@@ -6,7 +6,17 @@
     "allowSyntheticDefaultImports": true,
     "module": "esnext",
     "esModuleInterop": true,
-    "moduleResolution": "node"
+    "moduleResolution": "node",
+    "baseUrl": "src",
+    "paths": {
+      "types": ["types"],
+      "sagas": ["sagas"],
+      "icons": ["icons"],
+      "actions": ["actions"],
+      "reducers": ["reducers"],
+      "store": ["store"],
+      "modals": ["components/modals"]
+    }
   },
   "exclude": ["node_modules"],
   "include": ["src"]

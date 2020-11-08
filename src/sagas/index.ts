@@ -1,4 +1,4 @@
-import { put, takeLatest, all } from 'redux-saga/effects';
+import { put, takeLatest, all, call } from 'redux-saga/effects';
 
 interface IProps {
   type: string;
@@ -45,6 +45,30 @@ function* watchDarkMode() {
   yield takeLatest('TOGGLE_DARK_MODE_REQUESTED', toggleDarkMode);
 }
 
+function* saveDrawing({ payload }: IProps) {
+  yield call([localStorage, 'setItem'], 'drawing', JSON.stringify(payload));
+
+  yield put({ type: 'SAVE_DRAWING', payload });
+}
+
+function* watchSaveDrawing() {
+  yield takeLatest('SAVE_DRAWING_REQUESTED', saveDrawing);
+}
+
+function* loadPoints() {
+  const stringifiedPoints = yield call([localStorage, 'getItem'], 'drawing');
+
+  const points = JSON.parse(stringifiedPoints);
+
+  if (points.length) {
+    yield put({ type: 'LOAD_POINTS', payload: points });
+  }
+}
+
+function* watchLoadPoints() {
+  yield takeLatest('LOAD_POINTS_REQUESTED', loadPoints);
+}
+
 // notice how we now only export the rootSaga
 // single entry point to start all Sagas at once
 export default function* rootSaga() {
@@ -54,5 +78,7 @@ export default function* rootSaga() {
     watchSetBrushSize(),
     watchZoomLevel(),
     watchDarkMode(),
+    watchSaveDrawing(),
+    watchLoadPoints(),
   ]);
 }

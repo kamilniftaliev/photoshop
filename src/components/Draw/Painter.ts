@@ -1,41 +1,23 @@
-interface IPath {
-  x: number;
-  y: number;
+import { Path, Point, PainterState } from '../../types/interfaces';
+
+export interface saveCallbackProps {
+  points: Point[];
+  canUndo: boolean;
+  canRedo: boolean;
 }
 
-interface IPoint {
-  path: IPath[];
-  start: IPath;
-  tool: string;
-  color: {
-    r: number;
-    g: number;
-    b: number;
-    a: number;
-  };
-  brushSize: number;
-}
-
-interface ISize {
-  width: number;
-  height: number;
-}
-
-interface IState {
-  isDrawing?: boolean;
-  zoomLevel?: number;
-  points?: IPoint[];
-  selectedTool?: IPoint['tool'];
-  color?: IPoint['color'];
-  brushSize?: IPoint['brushSize'];
+interface PainterProps {
+  element: HTMLCanvasElement;
+  saveDrawing: (data: saveCallbackProps) => void;
 }
 
 export default class Painter {
-  private el: HTMLCanvasElement;
-  private ctx: CanvasRenderingContext2D;
-  private canvasSizeUpdateTimeout: number;
+  #el: HTMLCanvasElement;
+  #ctx: CanvasRenderingContext2D;
+  #canvasSizeUpdateTimeout: number;
+  #drawingSaver: PainterProps['saveDrawing'];
 
-  state: IState = {
+  #state: PainterState = {
     isDrawing: false,
     points: [],
     selectedTool: 'pen',
@@ -46,125 +28,207 @@ export default class Painter {
       a: 1,
     },
     brushSize: 10,
-    zoomLevel: 100,
-    // originalCanvasSize,
+    currentPointIndex: 0,
   };
 
-  constructor(element: HTMLCanvasElement) {
-    this.el = element;
+  constructor({
+    element,
+    saveDrawing,
+  }: PainterProps) {
+    this.#el = element;
+    this.#ctx = this.#el.getContext('2d');
+    this.#drawingSaver = saveDrawing;
 
-    this.ctx = this.el.getContext('2d');
-
-    this.bindEvents();
+    this.#bindEvents();
   }
 
   /**
    * React like setState method that
    * updates the state and calls the render
    */
-  private setState = (nextState: IState) => {
-    const prevState = this.state;
+  #setState = (nextState: PainterState, callback?: (state?: PainterState) => void) => {
+    const prevState = this.#state;
 
-    this.state = {
+    this.#state = {
       ...prevState,
       ...nextState,
     };
 
-    if (nextState.zoomLevel && prevState.zoomLevel !== nextState.zoomLevel) {
-      this.renderAllPoints();
+    if (
+      typeof nextState.currentPointIndex === 'number' &&
+      !Number.isNaN(nextState.currentPointIndex)
+    ) {
+      this.#renderAllPoints();
     } else {
-      const { points } = this.state;
+      this.#state.currentPointIndex = this.#state.points.length - 1;
+
+      const { points } = this.#state;
 
       const lastPoint = points[points.length - 1];
 
       if (lastPoint) {
-        this.renderPoint(lastPoint);
+        this.#renderPoint(lastPoint);
+      }
+    }
+
+    if (typeof callback === 'function') {
+      callback(this.#state);
+    }
+  };
+
+  #bindEvents = () => {
+    this.#el.addEventListener('mousedown', this.#startDrawing);
+    this.#el.addEventListener('mousemove', this.#draw);
+    document.addEventListener('mouseup', this.#stopDrawing);
+    document.addEventListener('keyup', this.#handleKeyPress);
+    window.addEventListener('resize', this.#updateCanvasSize);
+    this.#updateCanvasSize();
+  }
+
+  #unbindEvents = () => {
+    document.removeEventListener('mouseup', this.#stopDrawing);
+    document.removeEventListener('keyup', this.#handleKeyPress);
+    window.removeEventListener('resize', this.#updateCanvasSize);
+  }
+
+  #handleKeyPress = (event) => {
+    if ((event.ctrlKey || event.metaKey) && event.keyCode === 90) {
+      if (event.shiftKey) {
+        this.redo();
+      } else {
+        this.undo();
       }
     }
   };
 
-  private bindEvents() {
-    this.el.onmousedown = this.startDrawing;
-    this.el.onmousemove = this.draw;
-    this.el.onmouseup = this.stopDrawing;
-    window.onresize = this.updateCanvasSize;
-    this.updateCanvasSize();
+  public undo = () => {
+    const { currentPointIndex } = this.#state;
+
+    let newCurrentPointIndex = currentPointIndex - 1;
+
+    if (newCurrentPointIndex < -1) {
+      newCurrentPointIndex = -1;
+    }
+
+    this.#setState({ currentPointIndex: newCurrentPointIndex }, this.#saveDrawing);
+  }
+  
+  public redo = () => {
+    const { points, currentPointIndex } = this.#state;
+
+    let newCurrentPointIndex = currentPointIndex + 1;
+
+    if (newCurrentPointIndex >= points.length) {
+      newCurrentPointIndex = points.length - 1;
+    }
+
+    this.#setState({ currentPointIndex: newCurrentPointIndex }, this.#saveDrawing);
   }
 
-  private updateCanvasSize = () => {
-    const { zoomLevel } = this.state;
-    // if (zoomLevel !== 100) return;
+  #updateCanvasSize = () => {
+    clearTimeout(this.#canvasSizeUpdateTimeout);
+    this.#canvasSizeUpdateTimeout = setTimeout(() => {
+      const parentStyles = getComputedStyle(this.#el.parentElement);
 
-    clearTimeout(this.canvasSizeUpdateTimeout);
-    this.canvasSizeUpdateTimeout = setTimeout(() => {
-      const cs = getComputedStyle(this.el.parentElement);
-      this.el.width = (parseInt(cs.width, 10) * 95) / 100;
-      console.log('this.el.width', this.el.width)
-      this.el.height = (this.el.width * 70) / 100;
+      const parentWidth = parseInt(parentStyles.width, 10);
+      const parentHeight = parseInt(parentStyles.height, 10);
 
-      this.renderAllPoints();
+      const width = (parentWidth * 95) / 100;
+      let height = (width * 70) / 100;
+
+      if (parentHeight < height) {
+        height = (parentHeight * 95) / 100;
+      }
+      
+      this.#el.width = width
+      this.#el.height = height;
+      
+
+      this.#renderAllPoints();
     }, 50);
   };
 
-  private stopDrawing = () => {
-    this.setState({ isDrawing: false });
+  #stopDrawing = () => {
+    const { isDrawing } = this.#state;
+
+    if (!isDrawing) return;
+    
+    this.#setState({ isDrawing: false });
+
+    this.#saveDrawing();
   };
 
-  private getPointFromEvent(event): IPath {
-    const x = (event.offsetX / this.el.width) * 100;
-    const y = (event.offsetY / this.el.height) * 100;
+  #saveDrawing = () => {
+    const { currentPointIndex, points: allPoints } = this.#state;
+
+    const points = this.#getAvailablePoints();
+
+    if (typeof this.#drawingSaver === 'function') {
+      const canUndo = allPoints.length && currentPointIndex >= 0;
+      const canRedo = allPoints.length && currentPointIndex < allPoints.length - 1;
+
+      this.#drawingSaver({
+        points,
+        canUndo,
+        canRedo,
+      });
+    }
+  }
+
+  #getPointFromEvent = (event): Path => {
+    const x = (event.offsetX / this.#el.width) * 100;
+    const y = (event.offsetY / this.#el.height) * 100;
 
     return { x, y };
   }
 
-  private startDrawing = (event) => {
-    const point = this.getPointFromEvent(event);
+  #startDrawing = (event) => {
+    const point = this.#getPointFromEvent(event);
 
-    this.addPoint(point.x, point.y);
+    this.#addPoint(point.x, point.y);
   };
 
-  private clearCanvas() {
-    this.ctx.clearRect(
-      0,
-      0,
-      this.ctx.canvas.width,
-      this.ctx.canvas.height
-    );
+  #clearCanvas = () => {
+    this.#ctx.clearRect(0, 0, this.#ctx.canvas.width, this.#ctx.canvas.height);
   }
 
-  private draw = (event) => {
-    const { isDrawing, selectedTool } = this.state;
+  #draw = (event) => {
+    const { isDrawing, points } = this.#state;
 
     if (!isDrawing) return;
 
-    const point = this.getPointFromEvent(event);
-
-    this.addPathToPoint(point.x, point.y);
-  };
-
-  private addPathToPoint = (x, y) => {
-    const { points } = this.state;
+    const point = this.#getPointFromEvent(event);
 
     const previousPoints = points.slice(0, -1);
     const lastPoint = points[points.length - 1];
 
-    this.setState({
+    this.#setState({
       points: [
         ...previousPoints,
         {
           ...lastPoint,
-          path: [...lastPoint.path, { x, y }],
+          path: [...lastPoint.path, { x: point.x, y: point.y }],
         },
       ],
     });
   };
 
-  private addPoint = (x, y) => {
-    const { points, selectedTool, color, brushSize } = this.state;
+  #getAvailablePoints = () => {
+    const { points, currentPointIndex } = this.#state;
 
-    this.setState({
+    return points.slice(0, currentPointIndex + 1);
+  }
+
+  #addPoint = (x, y) => {
+    const {
+      selectedTool,
+      color,
+      brushSize,
+    } = this.#state;
+
+    this.#setState({
       points: [
-        ...points,
+        ...this.#getAvailablePoints(),
         {
           tool: selectedTool,
           start: { x, y },
@@ -177,50 +241,70 @@ export default class Painter {
     });
   };
 
-  private percToPx(perc: number, dir: string) {
-    return (perc * this.el[dir]) / 100;
+  #percToPx = (perc: number, dir: string) => {
+    return (perc * this.#el[dir]) / 100;
   }
 
-  private renderPoint = ({ start, path, tool, color, brushSize }: IPoint) => {
+  #renderPoint = ({ start, path, tool, color, brushSize }: Point) => {
     if (tool === 'eraser') {
-      this.ctx.globalCompositeOperation = 'destination-out';
-      this.ctx.strokeStyle = 'black';
+      this.#ctx.globalCompositeOperation = 'destination-out';
+      this.#ctx.strokeStyle = 'black';
     } else {
-      this.ctx.strokeStyle = `rgba(${color.r},${color.g},${color.b},${color.a})`;
-      this.ctx.globalCompositeOperation = 'source-over';
+      this.#ctx.strokeStyle = `rgba(${color.r},${color.g},${color.b},${color.a})`;
+      this.#ctx.globalCompositeOperation = 'source-over';
     }
 
-    this.ctx.lineWidth = brushSize;
-    this.ctx.lineJoin = this.ctx.lineCap = 'round';
+    this.#ctx.lineWidth = brushSize;
+    this.#ctx.lineJoin = this.#ctx.lineCap = 'round';
 
-    this.ctx.beginPath();
-    this.ctx.moveTo(
-      this.percToPx(start.x, 'width'),
-      this.percToPx(start.y, 'height'),
+    this.#ctx.beginPath();
+    this.#ctx.moveTo(
+      this.#percToPx(start.x, 'width'),
+      this.#percToPx(start.y, 'height')
     );
 
     const lines = path.length ? path : [start];
 
     for (var i = 0; i < lines.length; i++) {
-      this.ctx.lineTo(
-        this.percToPx(lines[i].x, 'width'),
-        this.percToPx(lines[i].y, 'height'),
+      this.#ctx.lineTo(
+        this.#percToPx(lines[i].x, 'width'),
+        this.#percToPx(lines[i].y, 'height')
       );
     }
 
-    this.ctx.stroke();
+    this.#ctx.stroke();
   };
 
-  private renderAllPoints() {
-    const { points } = this.state;
+  #renderAllPoints = () => {
+    this.#clearCanvas();
 
-    points.forEach(this.renderPoint);
+    this.#getAvailablePoints().forEach(this.#renderPoint);
   }
 
   /**
    * setConfig
    */
-  public setConfig({ selectedTool, color, brushSize, zoomLevel }) {
-    this.setState({ selectedTool, color, brushSize, zoomLevel });
+  public setConfig = ({ selectedTool, color, brushSize, points }): void => {
+    let pointsState = null;
+    if (Array.isArray(points) && points.length) {
+      pointsState = {
+        points,
+        currentPointIndex: points.length - 1,
+      };
+    }
+
+    this.#setState(
+      {
+        selectedTool,
+        color,
+        brushSize,
+        ...pointsState
+      },
+      pointsState && this.#saveDrawing
+    );
+  }
+
+  public beforeDestroy = () => {
+    this.#unbindEvents();
   }
 }

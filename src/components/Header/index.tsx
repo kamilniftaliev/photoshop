@@ -2,8 +2,8 @@ import React from 'react';
 import styled from 'styled-components';
 
 // Icons
-import DrawIcon from '../../icons/Draw';
-import StatisticsIcon from '../../icons/Statistics';
+import { DrawIcon } from 'icons';
+import { StatisticsIcon } from 'icons';
 
 // Components
 import NavItem from './NavItem';

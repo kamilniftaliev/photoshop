@@ -16,8 +16,14 @@ module.exports = {
   resolve: {
     extensions: ['.js', '.jsx', '.ts', '.tsx'],
     alias: {
-      // Allow import 'ui'
-      ui: path.resolve('./src/components/ui'),
+      // Allow import 'Modals'
+      modals: path.resolve('./src/components/modals'),
+      actions: path.resolve('./src/actions'),
+      types: path.resolve('./src/types'),
+      reducers: path.resolve('./src/reducers'),
+      sagas: path.resolve('./src/sagas'),
+      icons: path.resolve('./src/icons'),
+      store: path.resolve('./src/store'),
     },
   },
 

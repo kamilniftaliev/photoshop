@@ -2,8 +2,8 @@ import React from 'react';
 import styled from 'styled-components';
 
 // Icons
-import PenIcon from '../../../icons/Pen';
-import EraserIcon from '../../../icons/Eraser';
+import { PenIcon } from 'icons';
+import { EraserIcon } from 'icons';
 
 const Container = styled.aside`
   display: flex;

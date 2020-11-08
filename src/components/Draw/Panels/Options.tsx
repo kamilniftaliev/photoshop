@@ -5,6 +5,9 @@ import DefaultSelect from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
+import Button from '@material-ui/core/Button';
+import UndoIcon from '@material-ui/icons/Undo';
+import RedoIcon from '@material-ui/icons/Redo';
 
 const Container = styled.header`
   display: flex;
@@ -66,6 +69,10 @@ interface IProps {
   setZoomLevel: (size: number) => void;
   darkMode: boolean;
   toggleDarkMode: () => void;
+  undo: () => void;
+  redo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
 }
 
 export default function Options({
@@ -75,6 +82,10 @@ export default function Options({
   setZoomLevel,
   darkMode,
   toggleDarkMode,
+  undo,
+  redo,
+  canUndo,
+  canRedo,
 }: IProps) {
   const [brushSize, setBrushSize] = useState<number | number[]>(
     initialBrushSize
@@ -82,6 +93,26 @@ export default function Options({
 
   return (
     <Container>
+      <Setting>
+        <Button
+          endIcon={<UndoIcon />}
+          variant="contained"
+          size="small"
+          onClick={undo}
+          disabled={!canUndo}
+        >
+          Undo
+        </Button>
+        <Button
+          startIcon={<RedoIcon />}
+          variant="contained"
+          size="small"
+          onClick={redo}
+          disabled={!canRedo}
+        >
+          Redo
+        </Button>
+      </Setting>
       <Setting>
         <SettingLabel>Zoom Level:</SettingLabel>
         <Select

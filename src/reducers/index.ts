@@ -1,17 +1,16 @@
-interface IRootState {
-  selectedTool: string;
-  brushSize: number;
+import { PainterState } from '../types/interfaces';
+
+interface StoreType {
+  selectedTool: PainterState['selectedTool'];
+  brushSize: PainterState['brushSize'];
   zoomLevel: number;
   darkMode: boolean;
-  color: {
-    r: number;
-    g: number;
-    b: number;
-    a: number;
-  };
+  points?: PainterState['points'];
+  color: PainterState['color'];
+  loadedPreviousSession?: boolean;
 }
 
-const initialState: IRootState = {
+const initialState: StoreType = {
   selectedTool: 'pen',
   brushSize: 10,
   zoomLevel: 100,
@@ -24,7 +23,7 @@ const initialState: IRootState = {
   },
 }
 
-function counterReducer(state = initialState, { type, payload }) {
+function rootReducer(state = initialState, { type, payload }) {
   switch (type) {
     case 'SELECT_TOOL':
       return {
@@ -56,9 +55,23 @@ function counterReducer(state = initialState, { type, payload }) {
         darkMode: !state.darkMode,
       }
 
+    case 'SAVE_DRAWING':
+      return {
+        ...state,
+        points: payload,
+        loadedPreviousSession: false,
+      }
+
+    case 'LOAD_POINTS':
+      return {
+        ...state,
+        points: payload,
+        loadedPreviousSession: true,
+      }
+
     default:
       return state
   }
 }
 
-export default counterReducer
+export default rootReducer

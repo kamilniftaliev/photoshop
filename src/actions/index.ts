@@ -1,3 +1,6 @@
+// Types
+import { Point } from '../types/interfaces';
+
 export const selectToolRequest = (tool: string) => {
   return {
     type: 'SELECT_TOOL_REQUESTED',
@@ -5,7 +8,7 @@ export const selectToolRequest = (tool: string) => {
   }
 }
 
-export const setColorRequest = (color: string) => {
+export const setColorRequest = (color: Point['color']) => {
   return {
     type: 'SET_COLOR_REQUESTED',
     payload: color,
@@ -29,5 +32,18 @@ export const setZoomLevelRequest = (size: number) => {
 export const toggleDarkModeRequest = () => {
   return {
     type: 'TOGGLE_DARK_MODE_REQUESTED',
+  }
+}
+
+export const saveDrawingRequest = (points: Point[]) => {
+  return {
+    type: 'SAVE_DRAWING_REQUESTED',
+    payload: points
+  }
+}
+
+export const loadPointsRequest = () => {
+  return {
+    type: 'LOAD_POINTS_REQUESTED',
   }
 }
