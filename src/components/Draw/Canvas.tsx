@@ -1,30 +1,50 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import styled from 'styled-components';
 
 const Container = styled.article`
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
+  position: relative;
   background-color: #282828;
+  overflow: auto;
 `;
 
-const CanvasElement = styled.canvas`
+interface ICanvasProps {
+  scale: number;
+}
+
+const CanvasElement = styled.canvas<ICanvasProps>`
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  position: absolute;
+  margin: auto;
   background-color: #fff;
-  box-shadow: 1px 2px 10px rgba(0, 0, 0, 0.6);
-
-  width: calc(100vmin - 350px);
-  height: calc(75vmin - 350px);
+  box-shadow: 1px 2px 14px 4px rgba(0, 0, 0, 0.6);
+  transform: scale(${({ scale }) => scale});
+  transform-origin: left top;
 `;
 
-export default function Canvas({ onMount }) {
+interface IProps {
+  zoomLevel: number;
+  onMount: (element: HTMLCanvasElement) => void;
+}
+
+export default function Canvas({ onMount, zoomLevel }: IProps) {
   const canvasElement = useRef(null);
+
   useEffect(() => {
     onMount(canvasElement.current);
   }, []);
 
+  const scale = zoomLevel / 100;
+  console.log('scale', scale);
+
   return (
     <Container>
-      <CanvasElement ref={canvasElement} />
+      <CanvasElement scale={scale} ref={canvasElement} />
     </Container>
   );
 }

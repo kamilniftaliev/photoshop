@@ -6,6 +6,14 @@ interface IPath {
 interface IPoint {
   path: IPath[];
   start: IPath;
+  tool: string;
+  color: {
+    r: number;
+    g: number;
+    b: number;
+    a: number;
+  };
+  brushSize: number;
 }
 
 interface ISize {
@@ -13,52 +21,65 @@ interface ISize {
   height: number;
 }
 
-const points: IPoint[] = [];
-// const originalCanvasSize: ISize = {
-//   width: 0,
-//   height: 0,
-// };
+interface IState {
+  isDrawing?: boolean;
+  zoomLevel?: number;
+  points?: IPoint[];
+  selectedTool?: IPoint['tool'];
+  color?: IPoint['color'];
+  brushSize?: IPoint['brushSize'];
+}
 
 export default class Painter {
   private el: HTMLCanvasElement;
-  private context: CanvasRenderingContext2D;
+  private ctx: CanvasRenderingContext2D;
   private canvasSizeUpdateTimeout: number;
 
-  state = {
+  state: IState = {
     isDrawing: false,
-    points,
+    points: [],
     selectedTool: 'pen',
+    color: {
+      r: 0,
+      g: 0,
+      b: 0,
+      a: 1,
+    },
+    brushSize: 10,
+    zoomLevel: 100,
     // originalCanvasSize,
   };
 
   constructor(element: HTMLCanvasElement) {
     this.el = element;
 
-    this.context = this.el.getContext('2d');
+    this.ctx = this.el.getContext('2d');
 
     this.bindEvents();
-
-    setTimeout(() => {
-      this.state.selectedTool = 'eraser';
-    }, 3000);
   }
 
   /**
    * React like setState method that
    * updates the state and calls the render
    */
-  private setState = (newState: Object) => {
+  private setState = (nextState: IState) => {
+    const prevState = this.state;
+
     this.state = {
-      ...this.state,
-      ...newState,
+      ...prevState,
+      ...nextState,
     };
 
-    const { points } = this.state;
+    if (nextState.zoomLevel && prevState.zoomLevel !== nextState.zoomLevel) {
+      this.renderAllPoints();
+    } else {
+      const { points } = this.state;
 
-    const lastPoint = points[points.length - 1];
+      const lastPoint = points[points.length - 1];
 
-    if (lastPoint) {
-      this.renderPoint(lastPoint);
+      if (lastPoint) {
+        this.renderPoint(lastPoint);
+      }
     }
   };
 
@@ -71,51 +92,27 @@ export default class Painter {
   }
 
   private updateCanvasSize = () => {
+    const { zoomLevel } = this.state;
+    // if (zoomLevel !== 100) return;
+
     clearTimeout(this.canvasSizeUpdateTimeout);
     this.canvasSizeUpdateTimeout = setTimeout(() => {
-      this.el.removeAttribute('width');
-      this.el.removeAttribute('height');
-      const cs = getComputedStyle(this.el);
-      this.el.width = parseInt(cs.width, 10);
-      this.el.height = parseInt(cs.height, 10);
+      const cs = getComputedStyle(this.el.parentElement);
+      this.el.width = (parseInt(cs.width, 10) * 95) / 100;
+      console.log('this.el.width', this.el.width)
+      this.el.height = (this.el.width * 70) / 100;
 
       this.renderAllPoints();
-    }, 200);
+    }, 50);
   };
-
-  // private setCanvasSize = () => {
-  //   const canvasContainer = this.el.parentElement;
-  //   const prevElement = canvasContainer.previousElementSibling;
-  //   const nextElement = canvasContainer.nextElementSibling;
-
-  //   const windowRatio = window.innerHeight / window.innerWidth;
-
-  //   const canvasWidth =
-  //     window.innerWidth -
-  //     prevElement?.offsetWidth -
-  //     nextElement?.offsetWidth -
-  //     20;
-
-  //   const canvasHeight = window.innerHeight * windowRatio;
-
-  //   this.el.width = canvasWidth;
-  //   this.el.height = canvasHeight;
-
-  //   return {
-  //     width: canvasWidth,
-  //     height: canvasHeight,
-  //   };
-  // };
 
   private stopDrawing = () => {
     this.setState({ isDrawing: false });
   };
 
   private getPointFromEvent(event): IPath {
-    const elementBounds = this.el.getBoundingClientRect();
-
-    const x = event.clientX - elementBounds.x;
-    const y = event.clientY - elementBounds.y;
+    const x = (event.offsetX / this.el.width) * 100;
+    const y = (event.offsetY / this.el.height) * 100;
 
     return { x, y };
   }
@@ -127,11 +124,11 @@ export default class Painter {
   };
 
   private clearCanvas() {
-    this.context.clearRect(
+    this.ctx.clearRect(
       0,
       0,
-      this.context.canvas.width,
-      this.context.canvas.height
+      this.ctx.canvas.width,
+      this.ctx.canvas.height
     );
   }
 
@@ -163,7 +160,7 @@ export default class Painter {
   };
 
   private addPoint = (x, y) => {
-    const { points, selectedTool } = this.state;
+    const { points, selectedTool, color, brushSize } = this.state;
 
     this.setState({
       points: [
@@ -172,37 +169,58 @@ export default class Painter {
           tool: selectedTool,
           start: { x, y },
           path: [],
+          color,
+          brushSize,
         },
       ],
       isDrawing: true,
     });
   };
 
-  private renderPoint = ({ start, path, tool }) => {
+  private percToPx(perc: number, dir: string) {
+    return (perc * this.el[dir]) / 100;
+  }
+
+  private renderPoint = ({ start, path, tool, color, brushSize }: IPoint) => {
     if (tool === 'eraser') {
-      this.context.globalCompositeOperation = 'destination-out';
+      this.ctx.globalCompositeOperation = 'destination-out';
+      this.ctx.strokeStyle = 'black';
     } else {
-      this.context.globalCompositeOperation = 'source-over';
+      this.ctx.strokeStyle = `rgba(${color.r},${color.g},${color.b},${color.a})`;
+      this.ctx.globalCompositeOperation = 'source-over';
     }
 
-    this.context.lineWidth = 10;
-    this.context.lineJoin = this.context.lineCap = 'round';
+    this.ctx.lineWidth = brushSize;
+    this.ctx.lineJoin = this.ctx.lineCap = 'round';
 
-    this.context.beginPath();
-    this.context.moveTo(start.x, start.y);
+    this.ctx.beginPath();
+    this.ctx.moveTo(
+      this.percToPx(start.x, 'width'),
+      this.percToPx(start.y, 'height'),
+    );
 
     const lines = path.length ? path : [start];
 
     for (var i = 0; i < lines.length; i++) {
-      this.context.lineTo(lines[i].x, lines[i].y);
+      this.ctx.lineTo(
+        this.percToPx(lines[i].x, 'width'),
+        this.percToPx(lines[i].y, 'height'),
+      );
     }
 
-    this.context.stroke();
+    this.ctx.stroke();
   };
 
   private renderAllPoints() {
     const { points } = this.state;
 
     points.forEach(this.renderPoint);
+  }
+
+  /**
+   * setConfig
+   */
+  public setConfig({ selectedTool, color, brushSize, zoomLevel }) {
+    this.setState({ selectedTool, color, brushSize, zoomLevel });
   }
 }

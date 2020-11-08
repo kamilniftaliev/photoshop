@@ -2,8 +2,8 @@ import React from 'react';
 import styled from 'styled-components';
 
 // Icons
-import DrawIcon from '../../img/draw.svg';
-import StatisticsIcon from '../../img/statistics.svg';
+import DrawIcon from '../../icons/Draw';
+import StatisticsIcon from '../../icons/Statistics';
 
 // Components
 import NavItem from './NavItem';
@@ -12,8 +12,9 @@ const Container = styled.header`
   display: grid;
   justify-items: center;
 
-  background-color: #2d2f37;
-  color: #fff;
+  background-color: var(--header-color);
+  color: var(--text-color);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
 `;
 
 const Navigation = styled.nav`
@@ -32,8 +33,8 @@ export default function Header() {
     <Container>
       <Title>Online Photoshop</Title>
       <Navigation>
-        <NavItem to="/" icon={DrawIcon} label="Draw" />
-        <NavItem to="/statistics" icon={StatisticsIcon} label="Statistics" />
+        <NavItem to="/" Icon={DrawIcon} label="Draw" />
+        <NavItem to="/statistics" Icon={StatisticsIcon} label="Statistics" />
       </Navigation>
     </Container>
   );
