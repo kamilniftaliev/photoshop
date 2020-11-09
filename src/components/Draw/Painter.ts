@@ -268,7 +268,7 @@ export default class Painter {
   #renderPoint = ({ start, path, tool, color, brushSize }: Point) => {
     if (tool === 'eraser') {
       this.#ctx.globalCompositeOperation = 'destination-out';
-      this.#ctx.strokeStyle = 'black';
+      this.#ctx.strokeStyle = 'white';
     } else {
       this.#ctx.strokeStyle = `rgba(${color.r},${color.g},${color.b},${color.a})`;
       this.#ctx.globalCompositeOperation = 'source-over';
