@@ -8,6 +8,7 @@ import { Provider } from 'react-redux';
 import Header from './components/Header';
 import Draw from './components/Draw';
 import Statistics from './components/Statistics';
+import ErrorHandler from './components/ErrorHandler';
 
 import store from './store';
 
@@ -49,22 +50,24 @@ function App() {
   const [darkMode, toggleDarkMode] = useDarkMode();
 
   return (
-    <Container>
-      <Router>
-        <Header />
-        <Switch>
-          <Route path="/statistics">
-            <Statistics />
-          </Route>
-          <Route path="/">
-            <Draw darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
-          </Route>
-        </Switch>
-      </Router>
-      <SessionModal />
+    <ErrorHandler>
+      <Container>
+        <Router>
+          <Header />
+          <Switch>
+            <Route path="/statistics">
+              <Statistics />
+            </Route>
+            <Route path="/">
+              <Draw darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+            </Route>
+          </Switch>
+        </Router>
+        <SessionModal />
 
-      <GlobalStyles />
-    </Container>
+        <GlobalStyles />
+      </Container>
+    </ErrorHandler>
   );
 }
 
