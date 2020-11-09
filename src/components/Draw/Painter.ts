@@ -1,4 +1,4 @@
-import { Path, Point, PainterState } from '../../types/interfaces';
+import { Path, Point, PainterLocalState } from '../../types';
 
 export interface saveCallbackProps {
   points: Point[];
@@ -12,7 +12,7 @@ interface PainterProps {
   saveDrawing: (data: saveCallbackProps) => void;
 }
 
-const initialState: PainterState = {
+const initialState: PainterLocalState = {
   isDrawing: false,
   points: [],
   selectedTool: 'pen',
@@ -54,8 +54,8 @@ export default class Painter {
    * updates the state and calls the render
    */
   #setState = (
-    nextState: PainterState,
-    callback?: (state?: PainterState) => void
+    nextState: PainterLocalState,
+    callback?: (state?: PainterLocalState) => void
   ) => {
     const prevState = this.#state;
 
@@ -268,7 +268,7 @@ export default class Painter {
   #renderPoint = ({ start, path, tool, color, brushSize }: Point) => {
     if (tool === 'eraser') {
       this.#ctx.globalCompositeOperation = 'destination-out';
-      this.#ctx.strokeStyle = 'white';
+      this.#ctx.strokeStyle = '#ffffff';
     } else {
       this.#ctx.strokeStyle = `rgba(${color.r},${color.g},${color.b},${color.a})`;
       this.#ctx.globalCompositeOperation = 'source-over';

@@ -1,14 +1,14 @@
-import React, { useCallback, useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { RootState } from 'store';
+import { darkModeSelector } from 'selectors';
 
 // Actions
 import { toggleDarkModeRequest } from 'actions';
 
 export default function useDarkMode(): [boolean, () => void] {
   const dispatch = useDispatch();
-  const darkMode = useSelector((state: RootState) => state.darkMode);
+  const darkMode = useSelector(darkModeSelector);
 
   const toggleDarkMode = useCallback(
     () => dispatch(toggleDarkModeRequest()),

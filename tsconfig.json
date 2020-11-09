@@ -16,6 +16,7 @@
       "actions": ["actions"],
       "reducers": ["reducers"],
       "store": ["store"],
+      "selectors": ["selectors"],
       "modals": ["components/modals"]
     }
   },

@@ -17,12 +17,21 @@ import {
   setBrushSizeRequest,
   setZoomLevelRequest,
   saveDrawingRequest,
-  loadDrawingFromFileRequest,
+  LoadDrawingFromFileRequest,
 } from 'actions';
 
+// Selectors
+import {
+  brushSizeSelector,
+  colorSelector,
+  selectedToolSelector,
+  zoomLevelSelector,
+  previousDrawingPointsSelector,
+  pointsSelector,
+} from 'selectors';
+
 // Types
-import { Point } from 'types/interfaces';
-import { RootState } from 'store';
+import { Point } from 'types';
 
 const Container = styled.main`
   display: grid;
@@ -84,20 +93,15 @@ export default function Draw({ toggleDarkMode, darkMode }: DrawProps) {
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
 
-  const selectedTool = useSelector((state: RootState) => state.selectedTool);
-  const color = useSelector((state: RootState) => state.color);
-  const brushSize = useSelector((state: RootState) => state.brushSize);
-  const zoomLevel = useSelector((state: RootState) => state.zoomLevel);
-  const previousDrawingPoints = useSelector((state: RootState) =>
-    state.loadedPreviousSession ? state.points : null
-  );
-  const initialPoints = useSelector(
-    (state: RootState) => state.points,
-    () => true
-  );
+  const selectedTool = useSelector(selectedToolSelector);
+  const color = useSelector(colorSelector);
+  const brushSize = useSelector(brushSizeSelector);
+  const zoomLevel = useSelector(zoomLevelSelector);
+  const previousDrawingPoints = useSelector(previousDrawingPointsSelector);
+  const initialPoints = useSelector(pointsSelector, () => true);
 
   const selectTool = useCallback(
-    (selectedTool: string) => dispatch(selectToolRequest(selectedTool)),
+    (selectedTool: Point['tool']) => dispatch(selectToolRequest(selectedTool)),
     []
   );
 
@@ -107,7 +111,7 @@ export default function Draw({ toggleDarkMode, darkMode }: DrawProps) {
   );
 
   const setBrushSize = useCallback(
-    (brushSize: number) => dispatch(setBrushSizeRequest(brushSize)),
+    (brushSize: Point['brushSize']) => dispatch(setBrushSizeRequest(brushSize)),
     []
   );
 
@@ -125,8 +129,8 @@ export default function Draw({ toggleDarkMode, darkMode }: DrawProps) {
     []
   );
 
-  const loadDrawingFromFile = useCallback((points: Point[]) => {
-    dispatch(loadDrawingFromFileRequest(points));
+  const LoadDrawingFromFile = useCallback((points: Point[]) => {
+    dispatch(LoadDrawingFromFileRequest(points));
   }, []);
 
   const undo = useCallback(() => painter.current.undo(), [painter]);
@@ -149,7 +153,7 @@ export default function Draw({ toggleDarkMode, darkMode }: DrawProps) {
         const points = JSON.parse(event.target.result as string);
 
         if (points.length) {
-          loadDrawingFromFile(points);
+          LoadDrawingFromFile(points);
         }
       };
       reader.readAsText(event.target.files[0]);

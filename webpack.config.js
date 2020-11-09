@@ -24,6 +24,7 @@ module.exports = {
       icons: path.resolve('./src/icons'),
       store: path.resolve('./src/store'),
       hooks: path.resolve('./src/hooks'),
+      selectors: path.resolve('./src/selectors'),
     },
   },
 

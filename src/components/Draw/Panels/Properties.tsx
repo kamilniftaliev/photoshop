@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { ChromePicker } from 'react-color';
 
 // Types
-import { Point } from '../../../types/interfaces';
+import { Point } from 'types';
 
 const Container = styled.aside`
   display: flex;
@@ -20,7 +20,7 @@ const Shortcuts = styled.section`
 
 const ShortcutText = styled.p`
   color: var(--text-color);
-  opacity: 0.2;
+  opacity: 0.3;
 `;
 
 interface PropertiesProps {
@@ -43,10 +43,10 @@ export default function Properties({
       />
       <Shortcuts>
         <ShortcutText>
-          <strong>CTRL/CMD + Z</strong> - Undo last drawing
+          <strong>CTRL/CMD + Z</strong> - Undo
         </ShortcutText>
         <ShortcutText>
-          <strong>CTRL/CMD + Shift + Z</strong> - Redo last drawing
+          <strong>CTRL/CMD + Shift + Z</strong> - Redo
         </ShortcutText>
       </Shortcuts>
     </Container>

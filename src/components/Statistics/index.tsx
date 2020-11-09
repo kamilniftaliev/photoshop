@@ -2,7 +2,7 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import styled from 'styled-components';
 
-import { RootState } from 'store';
+import { pointsSelector } from 'selectors';
 
 const Container = styled.main`
   background-color: var(--panels-background-color);
@@ -33,7 +33,7 @@ const Count = styled.p`
 `;
 
 export default function Statistics() {
-  const points = useSelector((state: RootState) => state.points);
+  const points = useSelector(pointsSelector);
 
   const colors = Array.isArray(points)
     ? Object.entries(
