@@ -5,6 +5,9 @@ import styled from 'styled-components';
 import { PenIcon } from 'icons';
 import { EraserIcon } from 'icons';
 
+// Types
+import { Point } from 'types';
+
 const Container = styled.aside`
   display: flex;
   flex-direction: column;
@@ -42,19 +45,19 @@ const tools = [
   },
 ];
 
-interface IProps {
-  selectedTool: string;
-  setSelectedTool: (tool: string) => void;
+interface ToolsProps {
+  selectedTool: Point['tool'];
+  setSelectedTool: (tool: Point['tool']) => void;
 }
 
-export default function Tools({ selectedTool, setSelectedTool }: IProps) {
+export default function Tools({ selectedTool, setSelectedTool }: ToolsProps) {
   return (
     <Container>
       {tools.map(({ Icon, name }) => (
         <Icon
           key={name}
           className={selectedTool === name ? 'active' : ''}
-          onClick={() => setSelectedTool(name)}
+          onClick={() => setSelectedTool(name as Point['tool'])}
         />
       ))}
     </Container>

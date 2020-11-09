@@ -1,4 +1,3 @@
-// Types
 import {
   DrawingState,
   SAVE_DRAWING_REQUESTED,
@@ -19,7 +18,7 @@ export const loadDrawingFromSessionRequest = () => {
   };
 };
 
-export const LoadDrawingFromFileRequest = (points: DrawingState['points']) => {
+export const loadDrawingFromFileRequest = (points: DrawingState['points']) => {
   return {
     type: LOAD_DRAWING_FROM_FILE_REQUESTED,
     payload: points,

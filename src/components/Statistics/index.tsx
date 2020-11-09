@@ -35,6 +35,7 @@ const Count = styled.p`
 export default function Statistics() {
   const points = useSelector(pointsSelector);
 
+  // Group lines by color
   const colors = Array.isArray(points)
     ? Object.entries(
         points.reduce((acc, { color }) => {

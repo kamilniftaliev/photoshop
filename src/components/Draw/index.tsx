@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import styled from 'styled-components';
 import FileSaver from 'file-saver';
 
-import Painter, { saveCallbackProps } from './Painter';
+import Painter from './Painter';
 
 // Components
 import Tools from './Panels/Tools';
@@ -17,7 +17,7 @@ import {
   setBrushSizeRequest,
   setZoomLevelRequest,
   saveDrawingRequest,
-  LoadDrawingFromFileRequest,
+  loadDrawingFromFileRequest,
 } from 'actions';
 
 // Selectors
@@ -31,14 +31,23 @@ import {
 } from 'selectors';
 
 // Types
-import { Point } from 'types';
+import { Point, SettingsState } from 'types';
+
+// Utils
+import {
+  downloadJSONFileWithDrawing,
+  saveCanvasAsImage,
+  readDrawingFromJSON,
+} from 'utils';
 
 const Container = styled.main`
   display: grid;
   grid-template-areas:
     'options options options'
     'tools canvas properties';
-  grid-template-columns: var(--tools-panel-width) 1fr 250px;
+  grid-template-columns: var(--tools-panel-width) 1fr var(
+      --properties-panel-width
+    );
   grid-template-rows: auto 1fr;
   height: 100%;
 `;
@@ -69,30 +78,21 @@ const CanvasElement = styled.canvas<ICanvasProps>`
   transform-origin: left top;
 `;
 
-function generateFilename(): string {
-  const date = new Date();
-  const day = date.getDate();
-  const month = date.getMonth() + 1;
-  const year = date.getFullYear();
-  const time = `${date.getHours()}-${date.getMinutes()}`;
-  const filename = `Drawing - ${day}.${month}.${year} ${time}`;
-
-  return filename;
-}
-
 interface DrawProps {
   toggleDarkMode: () => void;
-  darkMode: boolean;
+  darkMode: SettingsState['darkMode'];
 }
 
 export default function Draw({ toggleDarkMode, darkMode }: DrawProps) {
+  const canvasElement = useRef(null);
   const painter = useRef(null);
   const dispatch = useDispatch();
-  const canvasElement = useRef(null);
 
+  // Local state
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
 
+  // Selectors from redux store
   const selectedTool = useSelector(selectedToolSelector);
   const color = useSelector(colorSelector);
   const brushSize = useSelector(brushSizeSelector);
@@ -116,57 +116,49 @@ export default function Draw({ toggleDarkMode, darkMode }: DrawProps) {
   );
 
   const setZoomLevel = useCallback(
-    (zoomLevel: number) => dispatch(setZoomLevelRequest(zoomLevel)),
+    (zoomLevel: SettingsState['zoomLevel']) =>
+      dispatch(setZoomLevelRequest(zoomLevel)),
     []
   );
 
-  const saveDrawing = useCallback(
-    ({ points, canUndo, canRedo }: saveCallbackProps) => {
-      dispatch(saveDrawingRequest(points));
-      setCanUndo(canUndo);
-      setCanRedo(canRedo);
-    },
-    []
-  );
-
-  const LoadDrawingFromFile = useCallback((points: Point[]) => {
-    dispatch(LoadDrawingFromFileRequest(points));
+  // Save drawing to the store (+ to the storage)
+  // and toggle undo/redo buttons
+  const saveDrawing = useCallback(({ points, canUndo, canRedo }) => {
+    dispatch(saveDrawingRequest(points));
+    setCanUndo(canUndo);
+    setCanRedo(canRedo);
   }, []);
 
+  // Load a drawing from JSON file
+  const loadDrawingFromFile = useCallback((points: Point[]) => {
+    dispatch(loadDrawingFromFileRequest(points));
+  }, []);
+
+  // Painter's undo caller
   const undo = useCallback(() => painter.current.undo(), [painter]);
+
+  // Painter's redo caller
   const redo = useCallback(() => painter.current.redo(), [painter]);
 
+  // Download current drawing as JSON
   const exportToJSON = useCallback(() => {
-    const points = painter.current.getPoints();
-
-    const blob = new Blob([JSON.stringify(points)], {
-      type: 'application/json;charset=utf-8',
-    });
-
-    FileSaver.saveAs(blob, `${generateFilename()}.json`);
+    downloadJSONFileWithDrawing(painter.current.getPoints());
   }, [painter]);
 
+  // Import JSON file and apply it
   const importJSON = useCallback(
-    (event) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const points = JSON.parse(event.target.result as string);
-
-        if (points.length) {
-          LoadDrawingFromFile(points);
-        }
-      };
-      reader.readAsText(event.target.files[0]);
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      readDrawingFromJSON(event, loadDrawingFromFile);
     },
     [painter]
   );
 
+  // Save the drawing as PNG image
   const saveAsImage = useCallback(() => {
-    canvasElement.current.toBlob((blob) =>
-      FileSaver.saveAs(blob, `${generateFilename()}.png`)
-    );
+    saveCanvasAsImage(canvasElement.current);
   }, [painter]);
 
+  // Initialize Painter on first mount
   useEffect(() => {
     painter.current = new Painter({
       element: canvasElement.current,
@@ -177,6 +169,8 @@ export default function Draw({ toggleDarkMode, darkMode }: DrawProps) {
     return painter.current.beforeDestroy;
   }, []);
 
+  // Update painter state when tool, color, brush size
+  // are changed or an old drawing got applied
   useEffect(() => {
     painter.current.setConfig({
       selectedTool,
@@ -190,15 +184,18 @@ export default function Draw({ toggleDarkMode, darkMode }: DrawProps) {
 
   return (
     <Container>
-      <Tools selectedTool={selectedTool} setSelectedTool={selectTool} />
+      <Tools
+        selectedTool={selectedTool as Point['tool']}
+        setSelectedTool={selectTool}
+      />
       <CanvasContainer>
         <CanvasElement scale={scale} ref={canvasElement} />
       </CanvasContainer>
-      <Properties color={color} setColor={setColor} />
+      <Properties color={color as Point['color']} setColor={setColor} />
       <Options
         zoomLevel={zoomLevel}
         setZoomLevel={setZoomLevel}
-        brushSize={brushSize}
+        brushSize={brushSize as Point['brushSize']}
         setBrushSize={setBrushSize}
         darkMode={darkMode}
         toggleDarkMode={toggleDarkMode}

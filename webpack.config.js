@@ -25,6 +25,7 @@ module.exports = {
       store: path.resolve('./src/store'),
       hooks: path.resolve('./src/hooks'),
       selectors: path.resolve('./src/selectors'),
+      utils: path.resolve('./src/utils'),
     },
   },
 

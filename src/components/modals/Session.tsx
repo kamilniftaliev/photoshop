@@ -15,6 +15,7 @@ export default function SessionModal() {
 
   const dispatch = useDispatch();
 
+  // Check if there's a drawing stored in storage
   useEffect(() => {
     const previousDrawing = localStorage.getItem('drawing');
 
@@ -24,6 +25,8 @@ export default function SessionModal() {
   }, []);
 
   const closeDialog = () => setDialogOpen(false);
+
+  // Applies the JSON stringified drawing from storage
   const loadDrawing = useCallback(() => {
     closeDialog();
     dispatch(loadDrawingFromSessionRequest());

@@ -1,16 +1,4 @@
-import { Path, Point, PainterLocalState } from '../../types';
-
-export interface saveCallbackProps {
-  points: Point[];
-  canUndo: boolean;
-  canRedo: boolean;
-}
-
-interface PainterProps {
-  element: HTMLCanvasElement;
-  points: Point[];
-  saveDrawing: (data: saveCallbackProps) => void;
-}
+import { Path, Point, PainterLocalState, PainterProps, DrawingSaverData } from 'types';
 
 const initialState: PainterLocalState = {
   isDrawing: false,
@@ -26,6 +14,15 @@ const initialState: PainterLocalState = {
   currentPointIndex: -1,
 };
 
+/** 95% of the parent element's width */
+const CANVAS_WIDTH_PERC = 95;
+/** Proportional height to the width */
+const CANVAS_HEIGHT_PERC = 70;
+
+/**
+ * Painter class is the place where
+ * everything related to canvas happens
+ */
 export default class Painter {
   #el: HTMLCanvasElement;
   #ctx: CanvasRenderingContext2D;
@@ -34,6 +31,11 @@ export default class Painter {
 
   #state = initialState;
 
+  /**
+   * Initializes the class, attaches mouse and keyboard events
+   * stores callback function for saving drawing and applies
+   * the passed points if they're valid
+   */
   constructor({ element, points, saveDrawing }: PainterProps) {
     this.#el = element;
     this.#ctx = this.#el.getContext('2d');
@@ -50,26 +52,31 @@ export default class Painter {
   }
 
   /**
-   * React like setState method that
-   * updates the state and calls the render
+   * React-like setState method that
+   * updates the state, calls the renderer
+   * and calls the callback with new state if needed
    */
   #setState = (
     nextState: PainterLocalState,
     callback?: (state?: PainterLocalState) => void
   ) => {
-    const prevState = this.#state;
-
     this.#state = {
-      ...prevState,
+      ...this.#state,
       ...nextState,
     };
 
+    /**
+     * If currentPointIndex has changed, meaning
+     * Undo/Redo buttons were clicked, render
+     * all points
+     */
     if (
       typeof nextState.currentPointIndex === 'number' &&
       !Number.isNaN(nextState.currentPointIndex)
     ) {
       this.#renderAllPoints();
     } else {
+      // If it's just a regular drawing, render only last point
       this.#state.currentPointIndex = this.#state.points.length - 1;
 
       const { points } = this.#state;
@@ -81,28 +88,42 @@ export default class Painter {
       }
     }
 
+    // React-like callback function
     if (typeof callback === 'function') {
       callback(this.#state);
     }
   };
 
+  /**
+   * Attach events to the canvas element and to DOM
+   */
   #bindEvents = () => {
     this.#el.addEventListener('mousedown', this.#startDrawing);
     this.#el.addEventListener('mousemove', this.#draw);
     document.addEventListener('mouseup', this.#stopDrawing);
     document.addEventListener('keyup', this.#handleKeyPress);
-    window.addEventListener('resize', this.#updateCanvasSize);
-    this.#updateCanvasSize();
+    window.addEventListener('resize', this.#setCanvasSize);
+
+    // Call canvas size setter for the first time
+    this.#setCanvasSize();
   };
 
+  /**
+   * Detach events
+   */
   #unbindEvents = () => {
     document.removeEventListener('mouseup', this.#stopDrawing);
     document.removeEventListener('keyup', this.#handleKeyPress);
-    window.removeEventListener('resize', this.#updateCanvasSize);
+    window.removeEventListener('resize', this.#setCanvasSize);
   };
 
-  #handleKeyPress = (event) => {
-    if ((event.ctrlKey || event.metaKey) && event.keyCode === 90) {
+  /**
+   * Listens to keyboard and:
+   * 1. if Ctrl/CMD + Z are pressed - calls undo
+   * 2. if Ctrl/CMD + Shift + Z are pressed - calls redo
+   */
+  #handleKeyPress = (event: KeyboardEvent) => {
+    if ((event.ctrlKey || event.metaKey) && event.code === 'KeyZ') {
       if (event.shiftKey) {
         this.redo();
       } else {
@@ -111,45 +132,64 @@ export default class Painter {
     }
   };
 
+  /**
+   * Reverts back the last added point by
+   * moving backwards in the array of points
+   */
   public undo = () => {
     const { currentPointIndex } = this.#state;
 
     let newCurrentPointIndex = currentPointIndex - 1;
 
+    // If we've reached the starting point, stop going back
     if (newCurrentPointIndex < -1) {
       newCurrentPointIndex = -1;
     }
 
+    // If the index is same, don't do anything
     if (newCurrentPointIndex === currentPointIndex) {
       return;
     }
 
+    // Update the index and call saver function
     this.#setState(
       { currentPointIndex: newCurrentPointIndex },
       this.#saveDrawing
     );
   };
 
+  /**
+   * Moves the focus forwards in the array of points
+   */
   public redo = () => {
     const { points, currentPointIndex } = this.#state;
 
     let newCurrentPointIndex = currentPointIndex + 1;
 
+    // If we've reached to the end, stop incrementing the index
     if (newCurrentPointIndex >= points.length) {
       newCurrentPointIndex = points.length - 1;
     }
 
+    // If the index is same, don't do anything
     if (newCurrentPointIndex === currentPointIndex) {
       return;
     }
 
+    // Update the index and call saver function
     this.#setState(
       { currentPointIndex: newCurrentPointIndex },
       this.#saveDrawing
     );
   };
 
-  #updateCanvasSize = () => {
+  /**
+   * Sets the "width" and "height" attributes on
+   * the canvas element according to sizes of the parent
+   * */
+  #setCanvasSize = () => {
+    // Debounce the function to not execute it
+    // on each window resize event
     clearTimeout(this.#canvasSizeUpdateTimeout);
     this.#canvasSizeUpdateTimeout = setTimeout(() => {
       const parentStyles = getComputedStyle(this.#el.parentElement);
@@ -157,11 +197,13 @@ export default class Painter {
       const parentWidth = parseInt(parentStyles.width, 10);
       const parentHeight = parseInt(parentStyles.height, 10);
 
-      const width = (parentWidth * 95) / 100;
-      let height = (width * 70) / 100;
+      const width = (parentWidth * CANVAS_WIDTH_PERC) / 100;
+      let height = (width * CANVAS_HEIGHT_PERC) / 100;
 
+      // If the canvas will be higher than
+      // parent's height, make it fit
       if (parentHeight < height) {
-        height = (parentHeight * 95) / 100;
+        height = (parentHeight * CANVAS_WIDTH_PERC) / 100;
       }
 
       this.#el.width = width;
@@ -171,6 +213,10 @@ export default class Painter {
     }, 50);
   };
 
+  /**
+   * Stops painting new points/lines and calls
+   * the saver function
+   */
   #stopDrawing = () => {
     const { isDrawing } = this.#state;
 
@@ -181,6 +227,11 @@ export default class Painter {
     this.#saveDrawing();
   };
 
+  /**
+   * Gets all points from start to current
+   * focused point and calls saver function
+   * with those limited range of points
+   */
   #saveDrawing = () => {
     const { currentPointIndex, points: allPoints } = this.#state;
 
@@ -199,24 +250,41 @@ export default class Painter {
     }
   };
 
-  #getPointFromEvent = (event): Path => {
+  /**
+   * Returns coordinates of the point in percentages related
+   * to the canvas size. We do that to make every paint
+   * responsive on all sizes.
+   * @property {number} x - Horizontal position in percentages
+   * @property {number} y - Vertical position in percentages
+   */
+  #getPointFromEvent = (event: MouseEvent): Path => {
     const x = (event.offsetX / this.#el.width) * 100;
     const y = (event.offsetY / this.#el.height) * 100;
 
     return { x, y };
   };
 
-  #startDrawing = (event) => {
+  /**
+   * Add/paint start of a line.
+   */
+  #startDrawing = (event: MouseEvent) => {
     const point = this.#getPointFromEvent(event);
 
     this.#addPoint(point.x, point.y);
   };
 
+  /**
+   * Clears the canvas from start to end
+   */
   #clearCanvas = () => {
     this.#ctx.clearRect(0, 0, this.#ctx.canvas.width, this.#ctx.canvas.height);
   };
 
-  #draw = (event) => {
+  /**
+   * Appends next paths to the starting point
+   * and generates a line
+   */
+  #draw = (event: MouseEvent) => {
     const { isDrawing, points } = this.#state;
 
     if (!isDrawing) return;
@@ -228,22 +296,34 @@ export default class Painter {
 
     this.#setState({
       points: [
+        // Previous lines
         ...previousPoints,
+        // New line
         {
           ...lastPoint,
+          // Actual path that becomes a line consisting
+          // of dots/points
           path: [...lastPoint.path, { x: point.x, y: point.y }],
         },
       ],
     });
   };
 
-  #getAvailablePoints = () => {
+  /**
+   * Returns range of points/lines/actions from start
+   * to current focused edit/action
+   */
+  #getAvailablePoints = (): PainterProps['points'] => {
     const { points, currentPointIndex } = this.#state;
 
     return points.slice(0, currentPointIndex + 1);
   };
 
-  #addPoint = (x, y) => {
+  /**
+   * Creates a new point and adds it as a starting
+   * point of a line/path
+   */
+  #addPoint = (x: Path['x'], y: Path['y']) => {
     const { selectedTool, color, brushSize } = this.#state;
 
     this.#setState({
@@ -261,22 +341,36 @@ export default class Painter {
     });
   };
 
-  #percToPx = (perc: number, dir: string) => {
+  /**
+   * Converts perc to actual pixels in given
+   * size direction
+   * @param dir - width or height
+   */
+  #percToPx = (perc: number, dir: string): number => {
     return (perc * this.#el[dir]) / 100;
   };
 
+  /**
+   * Renders/Paints a point at given position
+   */
   #renderPoint = ({ start, path, tool, color, brushSize }: Point) => {
+    // If eraser was selected
     if (tool === 'eraser') {
+      // Make it subtract the line from the one below
       this.#ctx.globalCompositeOperation = 'destination-out';
       this.#ctx.strokeStyle = '#ffffff';
     } else {
+      // Otherwise if "pen" tool was selected
+      // set the color and make it paint over others
       this.#ctx.strokeStyle = `rgba(${color.r},${color.g},${color.b},${color.a})`;
       this.#ctx.globalCompositeOperation = 'source-over';
     }
 
+    // Set brush size
     this.#ctx.lineWidth = brushSize;
     this.#ctx.lineJoin = this.#ctx.lineCap = 'round';
 
+    // Define the starting point
     this.#ctx.beginPath();
     this.#ctx.moveTo(
       this.#percToPx(start.x, 'width'),
@@ -285,6 +379,8 @@ export default class Painter {
 
     const lines = path.length ? path : [start];
 
+    // Draw until the array of paths (X and Y coordinates)
+    // reaches the end
     for (var i = 0; i < lines.length; i++) {
       this.#ctx.lineTo(
         this.#percToPx(lines[i].x, 'width'),
@@ -295,6 +391,10 @@ export default class Painter {
     this.#ctx.stroke();
   };
 
+  /**
+   * Clears the canvas and start painting
+   * everything from scratch
+   */
   #renderAllPoints = () => {
     this.#clearCanvas();
     this.#ctx.fillStyle = 'white';
@@ -303,15 +403,21 @@ export default class Painter {
     this.#getAvailablePoints().forEach(this.#renderPoint);
   };
 
+  /**
+   * Public method to access all points from start to end
+   */
   public getPoints = () => {
     return this.#state.points;
   };
 
   /**
-   * setConfig
+   * Public method to update some parts of the state
    */
   public setConfig = ({ selectedTool, color, brushSize, points }): void => {
     let pointsState = null;
+
+    // If valid points were passed, also update
+    // current focused point's index
     if (Array.isArray(points) && points.length) {
       pointsState = {
         points,
@@ -319,6 +425,7 @@ export default class Painter {
       };
     }
 
+    // Apply new changes
     this.#setState(
       {
         selectedTool,
@@ -330,6 +437,9 @@ export default class Painter {
     );
   };
 
+  /**
+   * Detach events before destroying the class
+   */
   public beforeDestroy = () => {
     this.#unbindEvents();
   };

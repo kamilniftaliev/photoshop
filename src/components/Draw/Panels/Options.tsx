@@ -12,6 +12,12 @@ import GetAppIcon from '@material-ui/icons/GetApp';
 import ImageIcon from '@material-ui/icons/Image';
 import PublishIcon from '@material-ui/icons/Publish';
 
+// Utils
+import { formatValueAsPx } from 'utils';
+
+// Types
+import { Point, SettingsState } from 'types';
+
 const Container = styled.header`
   display: flex;
   grid-area: options;
@@ -67,18 +73,14 @@ const HiddenFileInput = styled.input.attrs(() => ({
   display: none;
 `;
 
-function formatValue(value: number) {
-  return `${value}px`;
-}
-
 const zoomLevels = [10, 30, 50, 75, 100, 125, 150, 200];
 
-interface IProps {
-  brushSize: number;
+interface OptionsProps {
+  brushSize: Point['brushSize'];
   setBrushSize: (size: number | number[]) => void;
-  zoomLevel: number;
+  zoomLevel: SettingsState['zoomLevel'];
   setZoomLevel: (size: number) => void;
-  darkMode: boolean;
+  darkMode: SettingsState['darkMode'];
   toggleDarkMode: () => void;
   undo: () => void;
   redo: () => void;
@@ -86,7 +88,7 @@ interface IProps {
   canRedo: boolean;
   exportToJSON: () => void;
   saveAsImage: () => void;
-  importJSON: (event: any) => void;
+  importJSON: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export default function Options({
@@ -103,7 +105,7 @@ export default function Options({
   exportToJSON,
   saveAsImage,
   importJSON,
-}: IProps) {
+}: OptionsProps) {
   const [brushSize, setBrushSize] = useState<number | number[]>(
     initialBrushSize
   );
@@ -148,10 +150,10 @@ export default function Options({
       <BrushSetting>
         <SettingLabel>Brush size:</SettingLabel>
         <Slider
-          getAriaValueText={formatValue}
+          getAriaValueText={formatValueAsPx}
           step={1}
           valueLabelDisplay="auto"
-          valueLabelFormat={formatValue}
+          valueLabelFormat={formatValueAsPx}
           min={0}
           max={100}
           value={brushSize}

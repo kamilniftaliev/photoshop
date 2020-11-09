@@ -21,6 +21,7 @@ const GlobalStyles = createGlobalStyle`
     --header-color: #2d2f37;
     --panels-background-color: #282930;
     --tools-panel-width: 60px;
+    --properties-panel-width: 250px;
 
     font-family: 'Maven Pro', sans-serif;
   }

@@ -14,13 +14,13 @@ const initialState: SettingsState = {
 
 export default function reducer(
   state = initialState,
-  { type, payload }: SettingsAction
+  action: SettingsAction
 ) {
-  switch (type) {
+  switch (action.type) {
     case SET_ZOOM_LEVEL:
       return {
         ...state,
-        zoomLevel: payload,
+        zoomLevel: action.payload,
       };
 
     case TOGGLE_DARK_MODE:

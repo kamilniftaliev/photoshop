@@ -9,6 +9,11 @@ export const LOAD_DRAWING_FROM_FILE_REQUESTED = 'LOAD_DRAWING_FROM_FILE_REQUESTE
 
 export interface DrawingState {
   points: Point[];
+
+  /**
+   * Whether current drawing was loaded from
+   * some previously saved place (storage or file)
+   */
   loadedPreviousSession: boolean;
 }
 

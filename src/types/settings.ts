@@ -4,7 +4,15 @@ export const TOGGLE_DARK_MODE = 'TOGGLE_DARK_MODE';
 export const TOGGLE_DARK_MODE_REQUESTED = 'TOGGLE_DARK_MODE_REQUESTED';
 
 export interface SettingsState {
+  /**
+   * Zoom level of the canvas.
+   * How much it should scale?!
+   */
   zoomLevel: number;
+
+  /**
+   * Whether dark mode is enabled or not
+   */
   darkMode: boolean;
 }
 

@@ -21,15 +21,37 @@ export interface setBrushSizeAction {
 }
 
 export interface Path {
+  /** Horizontal coordinate of the path */
   readonly x: number;
+
+  /** Vertical coordinate of the path */
   readonly y: number;
 }
 
+/**
+ * A point/line that can be undone
+ */
 export interface Point {
+  /** 
+   * Array of paths that makes it look like a line
+   */
   path: Path[];
+
+  /** Starting point of the line */
   start: Path;
+
+  /** Name of the tool for that particular point */
   tool: 'pen' | 'eraser';
+
+  /**
+   * Size/line width of the selected tool.
+   * Works both for "pen" and "eraser"
+   * */
   brushSize: number;
+
+  /**
+   * RGBA color of the "pen" tool
+   */
   color: {
     r: number;
     g: number;
@@ -45,9 +67,51 @@ export interface PainterGlobalState {
 }
 
 export interface PainterLocalState extends PainterGlobalState {
+  /**
+   * Is mouse pressed?
+   */
   isDrawing?: boolean;
+
+  /**
+   * Array of points/dots with X and Y coordinates
+   */
   points?: Point[];
+
+  /**
+   * Index of the last point that we're currently
+   * focused on. Gets decremented when undo happens
+   * and increments when redo happens
+   */
   currentPointIndex?: number;
 }
 
-export type PainterActionTypes = setBrushSizeAction | setColorAction | selectToolAction;
+export interface DrawingSaverData {
+  points: PainterLocalState['points'];
+  
+  /** Whether to disable or enable "Undo" button */
+  canUndo: boolean;
+
+  /** Whether to disable or enable "Redo" button */
+  canRedo: boolean;
+}
+
+
+export interface PainterProps {
+  /**
+   * The HTML Canvas element that
+   * all the painting will happen
+   */
+  element: HTMLCanvasElement;
+  
+  points: Point[];
+
+  /**
+   * Callback function for saving the drawing
+   */
+  saveDrawing: (data: DrawingSaverData) => void;
+}
+
+export type PainterActionTypes =
+  | setBrushSizeAction
+  | setColorAction
+  | selectToolAction;
