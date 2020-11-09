@@ -8,6 +8,7 @@ export interface saveCallbackProps {
 
 interface PainterProps {
   element: HTMLCanvasElement;
+  points: Point[];
   saveDrawing: (data: saveCallbackProps) => void;
 }
 
@@ -33,22 +34,29 @@ export default class Painter {
 
   #state = initialState;
 
-  constructor({
-    element,
-    saveDrawing,
-  }: PainterProps) {
+  constructor({ element, points, saveDrawing }: PainterProps) {
     this.#el = element;
     this.#ctx = this.#el.getContext('2d');
     this.#drawingSaver = saveDrawing;
 
     this.#bindEvents();
+
+    if (Array.isArray(points) && points.length) {
+      this.#setState({
+        points,
+        currentPointIndex: points.length - 1,
+      });
+    }
   }
 
   /**
    * React like setState method that
    * updates the state and calls the render
    */
-  #setState = (nextState: PainterState, callback?: (state?: PainterState) => void) => {
+  #setState = (
+    nextState: PainterState,
+    callback?: (state?: PainterState) => void
+  ) => {
     const prevState = this.#state;
 
     this.#state = {
@@ -85,13 +93,13 @@ export default class Painter {
     document.addEventListener('keyup', this.#handleKeyPress);
     window.addEventListener('resize', this.#updateCanvasSize);
     this.#updateCanvasSize();
-  }
+  };
 
   #unbindEvents = () => {
     document.removeEventListener('mouseup', this.#stopDrawing);
     document.removeEventListener('keyup', this.#handleKeyPress);
     window.removeEventListener('resize', this.#updateCanvasSize);
-  }
+  };
 
   #handleKeyPress = (event) => {
     if ((event.ctrlKey || event.metaKey) && event.keyCode === 90) {
@@ -112,9 +120,16 @@ export default class Painter {
       newCurrentPointIndex = -1;
     }
 
-    this.#setState({ currentPointIndex: newCurrentPointIndex }, this.#saveDrawing);
-  }
-  
+    if (newCurrentPointIndex === currentPointIndex) {
+      return;
+    }
+
+    this.#setState(
+      { currentPointIndex: newCurrentPointIndex },
+      this.#saveDrawing
+    );
+  };
+
   public redo = () => {
     const { points, currentPointIndex } = this.#state;
 
@@ -124,8 +139,15 @@ export default class Painter {
       newCurrentPointIndex = points.length - 1;
     }
 
-    this.#setState({ currentPointIndex: newCurrentPointIndex }, this.#saveDrawing);
-  }
+    if (newCurrentPointIndex === currentPointIndex) {
+      return;
+    }
+
+    this.#setState(
+      { currentPointIndex: newCurrentPointIndex },
+      this.#saveDrawing
+    );
+  };
 
   #updateCanvasSize = () => {
     clearTimeout(this.#canvasSizeUpdateTimeout);
@@ -141,10 +163,9 @@ export default class Painter {
       if (parentHeight < height) {
         height = (parentHeight * 95) / 100;
       }
-      
-      this.#el.width = width
+
+      this.#el.width = width;
       this.#el.height = height;
-      
 
       this.#renderAllPoints();
     }, 50);
@@ -154,7 +175,7 @@ export default class Painter {
     const { isDrawing } = this.#state;
 
     if (!isDrawing) return;
-    
+
     this.#setState({ isDrawing: false });
 
     this.#saveDrawing();
@@ -167,7 +188,8 @@ export default class Painter {
 
     if (typeof this.#drawingSaver === 'function') {
       const canUndo = allPoints.length && currentPointIndex >= 0;
-      const canRedo = allPoints.length && currentPointIndex < allPoints.length - 1;
+      const canRedo =
+        allPoints.length && currentPointIndex < allPoints.length - 1;
 
       this.#drawingSaver({
         points,
@@ -175,14 +197,14 @@ export default class Painter {
         canRedo,
       });
     }
-  }
+  };
 
   #getPointFromEvent = (event): Path => {
     const x = (event.offsetX / this.#el.width) * 100;
     const y = (event.offsetY / this.#el.height) * 100;
 
     return { x, y };
-  }
+  };
 
   #startDrawing = (event) => {
     const point = this.#getPointFromEvent(event);
@@ -192,7 +214,7 @@ export default class Painter {
 
   #clearCanvas = () => {
     this.#ctx.clearRect(0, 0, this.#ctx.canvas.width, this.#ctx.canvas.height);
-  }
+  };
 
   #draw = (event) => {
     const { isDrawing, points } = this.#state;
@@ -219,14 +241,10 @@ export default class Painter {
     const { points, currentPointIndex } = this.#state;
 
     return points.slice(0, currentPointIndex + 1);
-  }
+  };
 
   #addPoint = (x, y) => {
-    const {
-      selectedTool,
-      color,
-      brushSize,
-    } = this.#state;
+    const { selectedTool, color, brushSize } = this.#state;
 
     this.#setState({
       points: [
@@ -245,7 +263,7 @@ export default class Painter {
 
   #percToPx = (perc: number, dir: string) => {
     return (perc * this.#el[dir]) / 100;
-  }
+  };
 
   #renderPoint = ({ start, path, tool, color, brushSize }: Point) => {
     if (tool === 'eraser') {
@@ -283,11 +301,11 @@ export default class Painter {
     this.#ctx.fillRect(0, 0, this.#el.width, this.#el.height);
 
     this.#getAvailablePoints().forEach(this.#renderPoint);
-  }
+  };
 
   public getPoints = () => {
     return this.#state.points;
-  }
+  };
 
   /**
    * setConfig
@@ -306,13 +324,13 @@ export default class Painter {
         selectedTool,
         color,
         brushSize,
-        ...pointsState
+        ...pointsState,
       },
       pointsState && this.#saveDrawing
     );
-  }
+  };
 
   public beforeDestroy = () => {
     this.#unbindEvents();
-  }
+  };
 }

@@ -12,6 +12,7 @@ import Statistics from './components/Statistics';
 import store from './store';
 
 import { SessionModal } from 'modals';
+import { useDarkMode } from 'hooks';
 
 const GlobalStyles = createGlobalStyle`
   :root {
@@ -45,26 +46,31 @@ const Container = styled.div`
 `;
 
 function App() {
+  const [darkMode, toggleDarkMode] = useDarkMode();
+
   return (
     <Container>
-      <Provider store={store}>
-        <Router>
-          <Header />
-          <Switch>
-            <Route path="/statistics">
-              <Statistics />
-            </Route>
-            <Route path="/">
-              <Draw />
-            </Route>
-          </Switch>
-        </Router>
-        <SessionModal />
-      </Provider>
+      <Router>
+        <Header />
+        <Switch>
+          <Route path="/statistics">
+            <Statistics />
+          </Route>
+          <Route path="/">
+            <Draw darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+          </Route>
+        </Switch>
+      </Router>
+      <SessionModal />
 
       <GlobalStyles />
     </Container>
   );
 }
 
-render(<App />, document.getElementById('root'));
+render(
+  <Provider store={store}>
+    <App />
+  </Provider>,
+  document.getElementById('root')
+);

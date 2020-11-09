@@ -16,7 +16,6 @@ import {
   setColorRequest,
   setBrushSizeRequest,
   setZoomLevelRequest,
-  toggleDarkModeRequest,
   saveDrawingRequest,
   loadDrawingFromFileRequest,
 } from 'actions';
@@ -72,7 +71,12 @@ function generateFilename(): string {
   return filename;
 }
 
-export default function Draw() {
+interface DrawProps {
+  toggleDarkMode: () => void;
+  darkMode: boolean;
+}
+
+export default function Draw({ toggleDarkMode, darkMode }: DrawProps) {
   const painter = useRef(null);
   const dispatch = useDispatch();
   const canvasElement = useRef(null);
@@ -84,9 +88,12 @@ export default function Draw() {
   const color = useSelector((state: RootState) => state.color);
   const brushSize = useSelector((state: RootState) => state.brushSize);
   const zoomLevel = useSelector((state: RootState) => state.zoomLevel);
-  const darkMode = useSelector((state: RootState) => state.darkMode);
   const previousDrawingPoints = useSelector((state: RootState) =>
     state.loadedPreviousSession ? state.points : null
+  );
+  const initialPoints = useSelector(
+    (state: RootState) => state.points,
+    () => true
   );
 
   const selectTool = useCallback(
@@ -106,11 +113,6 @@ export default function Draw() {
 
   const setZoomLevel = useCallback(
     (zoomLevel: number) => dispatch(setZoomLevelRequest(zoomLevel)),
-    []
-  );
-
-  const toggleDarkMode = useCallback(
-    () => dispatch(toggleDarkModeRequest()),
     []
   );
 
@@ -144,7 +146,7 @@ export default function Draw() {
     (event) => {
       const reader = new FileReader();
       reader.onload = (event) => {
-        const points = JSON.parse(event.target.result);
+        const points = JSON.parse(event.target.result as string);
 
         if (points.length) {
           loadDrawingFromFile(points);
@@ -164,6 +166,7 @@ export default function Draw() {
   useEffect(() => {
     painter.current = new Painter({
       element: canvasElement.current,
+      points: initialPoints,
       saveDrawing,
     });
 
@@ -178,19 +181,6 @@ export default function Draw() {
       points: previousDrawingPoints,
     });
   }, [selectedTool, color, brushSize, previousDrawingPoints]);
-
-  useEffect(() => {
-    let toggleAction = 'add';
-
-    if (darkMode) {
-      toggleAction = 'remove';
-      localStorage.setItem('darkMode', '1');
-    } else {
-      localStorage.removeItem('darkMode');
-    }
-
-    document.documentElement.classList[toggleAction]('light-theme');
-  }, [darkMode]);
 
   const scale = zoomLevel / 100;
 

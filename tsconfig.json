@@ -12,6 +12,7 @@
       "types": ["types"],
       "sagas": ["sagas"],
       "icons": ["icons"],
+      "hooks": ["hooks"],
       "actions": ["actions"],
       "reducers": ["reducers"],
       "store": ["store"],

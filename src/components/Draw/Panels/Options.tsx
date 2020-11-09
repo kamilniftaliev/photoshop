@@ -86,7 +86,7 @@ interface IProps {
   canRedo: boolean;
   exportToJSON: () => void;
   saveAsImage: () => void;
-  importJSON: () => void;
+  importJSON: (event: any) => void;
 }
 
 export default function Options({

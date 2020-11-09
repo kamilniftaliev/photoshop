@@ -24,6 +24,7 @@ module.exports = {
       sagas: path.resolve('./src/sagas'),
       icons: path.resolve('./src/icons'),
       store: path.resolve('./src/store'),
+      hooks: path.resolve('./src/hooks'),
     },
   },
 
