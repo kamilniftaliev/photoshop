@@ -8,6 +8,9 @@ import Switch from '@material-ui/core/Switch';
 import Button from '@material-ui/core/Button';
 import UndoIcon from '@material-ui/icons/Undo';
 import RedoIcon from '@material-ui/icons/Redo';
+import GetAppIcon from '@material-ui/icons/GetApp';
+import ImageIcon from '@material-ui/icons/Image';
+import PublishIcon from '@material-ui/icons/Publish';
 
 const Container = styled.header`
   display: flex;
@@ -56,6 +59,14 @@ const Select = styled(DefaultSelect)`
   }
 `;
 
+const HiddenFileInput = styled.input.attrs(() => ({
+  accept: 'application/JSON',
+  id: 'import-json-file',
+  type: 'file',
+}))`
+  display: none;
+`;
+
 function formatValue(value: number) {
   return `${value}px`;
 }
@@ -73,6 +84,9 @@ interface IProps {
   redo: () => void;
   canUndo: boolean;
   canRedo: boolean;
+  exportToJSON: () => void;
+  saveAsImage: () => void;
+  importJSON: () => void;
 }
 
 export default function Options({
@@ -86,6 +100,9 @@ export default function Options({
   redo,
   canUndo,
   canRedo,
+  exportToJSON,
+  saveAsImage,
+  importJSON,
 }: IProps) {
   const [brushSize, setBrushSize] = useState<number | number[]>(
     initialBrushSize
@@ -150,6 +167,35 @@ export default function Options({
           labelPlacement="start"
         />
       </DarkModeSetting>
+      <Setting>
+        <HiddenFileInput onChange={importJSON} />
+        <label htmlFor="import-json-file">
+          <Button
+            endIcon={<PublishIcon />}
+            variant="contained"
+            size="small"
+            component="span"
+          >
+            Import
+          </Button>
+        </label>
+        <Button
+          endIcon={<GetAppIcon />}
+          variant="contained"
+          size="small"
+          onClick={exportToJSON}
+        >
+          Export
+        </Button>
+        <Button
+          endIcon={<ImageIcon />}
+          variant="contained"
+          size="small"
+          onClick={saveAsImage}
+        >
+          Save as Image
+        </Button>
+      </Setting>
     </Container>
   );
 }

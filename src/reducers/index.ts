@@ -10,11 +10,13 @@ interface StoreType {
   loadedPreviousSession?: boolean;
 }
 
+const darkMode = localStorage.getItem('darkMode');
+
 const initialState: StoreType = {
   selectedTool: 'pen',
   brushSize: 10,
   zoomLevel: 100,
-  darkMode: true,
+  darkMode: !!darkMode,
   color: {
     r: 0,
     g: 0,
@@ -62,7 +64,8 @@ function rootReducer(state = initialState, { type, payload }) {
         loadedPreviousSession: false,
       }
 
-    case 'LOAD_POINTS':
+    case 'LOAD_DRAWING_FROM_SESSION':
+    case 'LOAD_DRAWING_FROM_FILE':
       return {
         ...state,
         points: payload,

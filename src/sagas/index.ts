@@ -1,5 +1,7 @@
 import { put, takeLatest, all, call } from 'redux-saga/effects';
 
+import { Point } from 'types/interfaces';
+
 interface IProps {
   type: string;
   payload: any;
@@ -55,22 +57,28 @@ function* watchSaveDrawing() {
   yield takeLatest('SAVE_DRAWING_REQUESTED', saveDrawing);
 }
 
-function* loadPoints() {
+function* loadDrawingFromSession() {
   const stringifiedPoints = yield call([localStorage, 'getItem'], 'drawing');
 
   const points = JSON.parse(stringifiedPoints);
 
   if (points.length) {
-    yield put({ type: 'LOAD_POINTS', payload: points });
+    yield put({ type: 'LOAD_DRAWING_FROM_SESSION', payload: points });
   }
 }
 
-function* watchLoadPoints() {
-  yield takeLatest('LOAD_POINTS_REQUESTED', loadPoints);
+function* watchloadDrawingFromSession() {
+  yield takeLatest('LOAD_DRAWING_FROM_SESSION_REQUESTED', loadDrawingFromSession);
 }
 
-// notice how we now only export the rootSaga
-// single entry point to start all Sagas at once
+function* loadDrawingFromFile({ payload }: IProps) {
+  yield put({ type: 'LOAD_DRAWING_FROM_FILE', payload });
+}
+
+function* watchLoadDrawingFromFile() {
+  yield takeLatest('LOAD_DRAWING_FROM_FILE_REQUESTED', loadDrawingFromFile);
+}
+
 export default function* rootSaga() {
   yield all([
     watchSetColor(),
@@ -79,6 +87,7 @@ export default function* rootSaga() {
     watchZoomLevel(),
     watchDarkMode(),
     watchSaveDrawing(),
-    watchLoadPoints(),
+    watchloadDrawingFromSession(),
+    watchLoadDrawingFromFile(),
   ]);
 }

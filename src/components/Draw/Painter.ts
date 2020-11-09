@@ -11,25 +11,27 @@ interface PainterProps {
   saveDrawing: (data: saveCallbackProps) => void;
 }
 
+const initialState: PainterState = {
+  isDrawing: false,
+  points: [],
+  selectedTool: 'pen',
+  color: {
+    r: 0,
+    g: 0,
+    b: 0,
+    a: 1,
+  },
+  brushSize: 10,
+  currentPointIndex: -1,
+};
+
 export default class Painter {
   #el: HTMLCanvasElement;
   #ctx: CanvasRenderingContext2D;
   #canvasSizeUpdateTimeout: number;
   #drawingSaver: PainterProps['saveDrawing'];
 
-  #state: PainterState = {
-    isDrawing: false,
-    points: [],
-    selectedTool: 'pen',
-    color: {
-      r: 0,
-      g: 0,
-      b: 0,
-      a: 1,
-    },
-    brushSize: 10,
-    currentPointIndex: 0,
-  };
+  #state = initialState;
 
   constructor({
     element,
@@ -277,8 +279,14 @@ export default class Painter {
 
   #renderAllPoints = () => {
     this.#clearCanvas();
+    this.#ctx.fillStyle = 'white';
+    this.#ctx.fillRect(0, 0, this.#el.width, this.#el.height);
 
     this.#getAvailablePoints().forEach(this.#renderPoint);
+  }
+
+  public getPoints = () => {
+    return this.#state.points;
   }
 
   /**

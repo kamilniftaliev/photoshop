@@ -38,12 +38,19 @@ export const toggleDarkModeRequest = () => {
 export const saveDrawingRequest = (points: Point[]) => {
   return {
     type: 'SAVE_DRAWING_REQUESTED',
-    payload: points
+    payload: points,
   }
 }
 
-export const loadPointsRequest = () => {
+export const loadDrawingFromSessionRequest = () => {
   return {
-    type: 'LOAD_POINTS_REQUESTED',
+    type: 'LOAD_DRAWING_FROM_SESSION_REQUESTED',
+  }
+}
+
+export const loadDrawingFromFileRequest = (points: Point[]) => {
+  return {
+    type: 'LOAD_DRAWING_FROM_FILE_REQUESTED',
+    payload: points,
   }
 }

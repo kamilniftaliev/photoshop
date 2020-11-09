@@ -8,7 +8,7 @@ import DialogTitle from '@material-ui/core/DialogTitle';
 import Button from '@material-ui/core/Button';
 
 // Actions
-import { loadPointsRequest } from 'actions';
+import { loadDrawingFromSessionRequest } from 'actions';
 
 export default function SessionModal() {
   const [isDialogOpen, setDialogOpen] = useState(false);
@@ -26,7 +26,7 @@ export default function SessionModal() {
   const closeDialog = () => setDialogOpen(false);
   const loadDrawing = useCallback(() => {
     closeDialog();
-    dispatch(loadPointsRequest());
+    dispatch(loadDrawingFromSessionRequest());
   }, []);
 
   if (!isDialogOpen) return null;

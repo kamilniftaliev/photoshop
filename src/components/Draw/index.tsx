@@ -1,6 +1,7 @@
 import React, { useRef, useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import styled from 'styled-components';
+import FileSaver from 'file-saver';
 
 import Painter, { saveCallbackProps } from './Painter';
 
@@ -17,6 +18,7 @@ import {
   setZoomLevelRequest,
   toggleDarkModeRequest,
   saveDrawingRequest,
+  loadDrawingFromFileRequest,
 } from 'actions';
 
 // Types
@@ -59,14 +61,25 @@ const CanvasElement = styled.canvas<ICanvasProps>`
   transform-origin: left top;
 `;
 
+function generateFilename(): string {
+  const date = new Date();
+  const day = date.getDate();
+  const month = date.getMonth() + 1;
+  const year = date.getFullYear();
+  const time = `${date.getHours()}-${date.getMinutes()}`;
+  const filename = `Drawing - ${day}.${month}.${year} ${time}`;
+
+  return filename;
+}
+
 export default function Draw() {
   const painter = useRef(null);
+  const dispatch = useDispatch();
   const canvasElement = useRef(null);
 
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
 
-  const dispatch = useDispatch();
   const selectedTool = useSelector((state: RootState) => state.selectedTool);
   const color = useSelector((state: RootState) => state.color);
   const brushSize = useSelector((state: RootState) => state.brushSize);
@@ -110,8 +123,43 @@ export default function Draw() {
     []
   );
 
+  const loadDrawingFromFile = useCallback((points: Point[]) => {
+    dispatch(loadDrawingFromFileRequest(points));
+  }, []);
+
   const undo = useCallback(() => painter.current.undo(), [painter]);
   const redo = useCallback(() => painter.current.redo(), [painter]);
+
+  const exportToJSON = useCallback(() => {
+    const points = painter.current.getPoints();
+
+    const blob = new Blob([JSON.stringify(points)], {
+      type: 'application/json;charset=utf-8',
+    });
+
+    FileSaver.saveAs(blob, `${generateFilename()}.json`);
+  }, [painter]);
+
+  const importJSON = useCallback(
+    (event) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const points = JSON.parse(event.target.result);
+
+        if (points.length) {
+          loadDrawingFromFile(points);
+        }
+      };
+      reader.readAsText(event.target.files[0]);
+    },
+    [painter]
+  );
+
+  const saveAsImage = useCallback(() => {
+    canvasElement.current.toBlob((blob) =>
+      FileSaver.saveAs(blob, `${generateFilename()}.png`)
+    );
+  }, [painter]);
 
   useEffect(() => {
     painter.current = new Painter({
@@ -132,7 +180,14 @@ export default function Draw() {
   }, [selectedTool, color, brushSize, previousDrawingPoints]);
 
   useEffect(() => {
-    const toggleAction = darkMode ? 'remove' : 'add';
+    let toggleAction = 'add';
+
+    if (darkMode) {
+      toggleAction = 'remove';
+      localStorage.setItem('darkMode', '1');
+    } else {
+      localStorage.removeItem('darkMode');
+    }
 
     document.documentElement.classList[toggleAction]('light-theme');
   }, [darkMode]);
@@ -157,6 +212,9 @@ export default function Draw() {
         redo={redo}
         canUndo={canUndo}
         canRedo={canRedo}
+        exportToJSON={exportToJSON}
+        saveAsImage={saveAsImage}
+        importJSON={importJSON}
       />
     </Container>
   );
