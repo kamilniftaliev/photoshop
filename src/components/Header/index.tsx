@@ -2,8 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 
 // Icons
-import { DrawIcon } from 'icons';
-import { StatisticsIcon } from 'icons';
+import { DrawIcon, StatisticsIcon } from 'icons';
 
 // Components
 import NavItem from './NavItem';
@@ -28,7 +27,10 @@ const Title = styled.h2`
   font-weight: 400;
 `;
 
-export default function Header() {
+/**
+ * Header of the app with navigation
+ */
+export default function Header(): React.ReactElement {
   return (
     <Container>
       <Title>Online Photoshop</Title>

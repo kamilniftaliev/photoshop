@@ -2,8 +2,7 @@ import React from 'react';
 import styled from 'styled-components';
 
 // Icons
-import { PenIcon } from 'icons';
-import { EraserIcon } from 'icons';
+import { PenIcon, EraserIcon } from 'icons';
 
 // Types
 import { Point } from 'types';
@@ -50,7 +49,13 @@ interface ToolsProps {
   setSelectedTool: (tool: Point['tool']) => void;
 }
 
-export default function Tools({ selectedTool, setSelectedTool }: ToolsProps) {
+/**
+ * Tools panel - left side of the canvas
+ */
+export default function Tools({
+  selectedTool,
+  setSelectedTool,
+}: ToolsProps): React.ReactElement {
   return (
     <Container>
       {tools.map(({ Icon, name }) => (

@@ -36,6 +36,6 @@ function* watchSetBrushSize() {
   yield takeLatest(SET_BRUSH_SIZE_REQUESTED, setBrushSize);
 }
 
-export default function* saga() {
+export default function* sagas() {
   yield all([watchSetColor(), watchToolSelect(), watchSetBrushSize()]);
 }

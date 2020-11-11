@@ -6,6 +6,10 @@ const Message = styled.h1`
   margin: 100px;
 `;
 
+/**
+ * The only Stateful class based React Component
+ * that handles errors
+ */
 export default class ErrorHandler extends React.Component {
   state = {
     hasError: false,

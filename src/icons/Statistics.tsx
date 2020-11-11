@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { SVGAttributes } from 'react';
 
-export default function Statistics(props) {
+export default function StatisticsIcon(props: SVGAttributes<SVGElement>) {
   return (
     <svg
       version="1.1"

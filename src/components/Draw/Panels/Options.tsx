@@ -86,11 +86,14 @@ interface OptionsProps {
   redo: () => void;
   canUndo: boolean;
   canRedo: boolean;
-  exportToJSON: () => void;
+  exportJSON: () => void;
   saveAsImage: () => void;
   importJSON: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
+/**
+ * Options panel - to the top of the canvas
+ */
 export default function Options({
   brushSize: initialBrushSize,
   setBrushSize: saveBrushSize,
@@ -102,7 +105,7 @@ export default function Options({
   redo,
   canUndo,
   canRedo,
-  exportToJSON,
+  exportJSON,
   saveAsImage,
   importJSON,
 }: OptionsProps) {
@@ -185,7 +188,7 @@ export default function Options({
           endIcon={<GetAppIcon />}
           variant="contained"
           size="small"
-          onClick={exportToJSON}
+          onClick={exportJSON}
         >
           Export
         </Button>

@@ -20,6 +20,12 @@ function* watchSaveDrawing() {
   yield takeLatest(SAVE_DRAWING_REQUESTED, saveDrawing);
 }
 
+/**
+ * Gets previous drawing from localStorage
+ * and if it's successfully parsed and contains
+ * points, it'll update the store and the drawing
+ * will be rendered on canvas
+ */
 function* loadDrawingFromSession() {
   const stringifiedPoints = yield call([localStorage, 'getItem'], 'drawing');
 
@@ -37,15 +43,15 @@ function* watchloadDrawingFromSession() {
   );
 }
 
-function* LoadDrawingFromFile({ payload }: LoadDrawingFromFile) {
+function* loadDrawingFromFile({ payload }: LoadDrawingFromFile) {
   yield put({ type: LOAD_DRAWING_FROM_FILE, payload });
 }
 
 function* watchLoadDrawingFromFile() {
-  yield takeLatest(LOAD_DRAWING_FROM_FILE_REQUESTED, LoadDrawingFromFile);
+  yield takeLatest(LOAD_DRAWING_FROM_FILE_REQUESTED, loadDrawingFromFile);
 }
 
-export default function* rootSaga() {
+export default function* sagas() {
   yield all([
     watchSaveDrawing(),
     watchloadDrawingFromSession(),

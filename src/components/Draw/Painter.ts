@@ -1,17 +1,14 @@
-import { Path, Point, PainterLocalState, PainterProps, DrawingSaverData } from 'types';
+// Types
+import { Path, Point, PainterLocalState, PainterProps } from 'types';
+
+// Reducers
+import { painterInitialGlobalState } from 'reducers';
 
 const initialState: PainterLocalState = {
   isDrawing: false,
   points: [],
-  selectedTool: 'pen',
-  color: {
-    r: 0,
-    g: 0,
-    b: 0,
-    a: 1,
-  },
-  brushSize: 10,
   currentPointIndex: -1,
+  ...painterInitialGlobalState,
 };
 
 /** 95% of the parent element's width */
@@ -24,8 +21,11 @@ const CANVAS_HEIGHT_PERC = 70;
  * everything related to canvas happens
  */
 export default class Painter {
+  /** The canvas element, where everything happens */
   #el: HTMLCanvasElement;
+  /** 2D context of the canvas element */
   #ctx: CanvasRenderingContext2D;
+  /** The Timeout that will be used on window resize event */
   #canvasSizeUpdateTimeout: number;
   #drawingSaver: PainterProps['saveDrawing'];
 
@@ -43,6 +43,8 @@ export default class Painter {
 
     this.#bindEvents();
 
+    // If valid points were passed on init,
+    // update the whole drawing
     if (Array.isArray(points) && points.length) {
       this.#setState({
         points,

@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { SVGAttributes } from 'react';
 
-export default function Draw(props) {
+export default function DrawIcon(props: SVGAttributes<SVGElement>) {
   return (
     <svg
       version="1.1"

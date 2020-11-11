@@ -28,10 +28,13 @@ interface PropertiesProps {
   setColor: (color: Point['color']) => void;
 }
 
+/**
+ * Properties panel - right side of the canvas
+ */
 export default function Properties({
   color: initialColor,
   setColor: saveColor,
-}: PropertiesProps) {
+}: PropertiesProps): React.ReactElement {
   const [color, setColor] = useState(initialColor);
 
   return (

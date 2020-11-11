@@ -12,6 +12,7 @@ function generateFilename(): string {
   const month = date.getMonth() + 1;
   const year = date.getFullYear();
   const time = `${date.getHours()}-${date.getMinutes()}`;
+
   const filename = `Drawing - ${day}.${month}.${year} ${time}`;
 
   return filename;
@@ -20,7 +21,7 @@ function generateFilename(): string {
 /**
  * Downloads a JSON file with points stringified
  */
-export function downloadJSONFileWithDrawing(points: Point[]) {
+export function downloadJSONFileWithDrawing(points: Point[]): void {
   const blob = new Blob([JSON.stringify(points)], {
     type: 'application/json;charset=utf-8',
   });
@@ -32,7 +33,7 @@ export function downloadJSONFileWithDrawing(points: Point[]) {
  * Saves canvas as PNG image
  * @param canvasElement - Element to save image from
  */
-export function saveCanvasAsImage(canvasElement: HTMLCanvasElement) {
+export function saveCanvasAsImage(canvasElement: HTMLCanvasElement): void {
   canvasElement.toBlob((blob) =>
     FileSaver.saveAs(blob, `${generateFilename()}.png`)
   );
@@ -43,7 +44,10 @@ export function saveCanvasAsImage(canvasElement: HTMLCanvasElement) {
  * @param event - Change event from hidden file input
  * @param callback - Function that will be called after successful parsing
  */
-export function readDrawingFromJSON(event: React.ChangeEvent<HTMLInputElement>, callback: (points: Point[]) => void) {
+export function readDrawingFromJSON(
+  event: React.ChangeEvent<HTMLInputElement>,
+  callback: (points: Point[]) => void
+): void {
   const reader = new FileReader();
   reader.onload = (event) => {
     const points = JSON.parse(event.target.result as string) as Point[];
@@ -59,6 +63,6 @@ export function readDrawingFromJSON(event: React.ChangeEvent<HTMLInputElement>, 
  * Format for tooltip above the slider
  * @param value - number from range slider
  */
-export function formatValueAsPx(value: number) {
+export function formatValueAsPx(value: number): string {
   return `${value}px`;
 }

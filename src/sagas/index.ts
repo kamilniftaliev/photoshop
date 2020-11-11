@@ -1,4 +1,4 @@
-import { put, takeLatest, all, call } from 'redux-saga/effects';
+import { all } from 'redux-saga/effects';
 
 import painterSaga from './painter';
 import settingsSaga from './settings';

@@ -6,7 +6,6 @@ import {
   TOGGLE_DARK_MODE,
   TOGGLE_DARK_MODE_REQUESTED,
   setZoomLevelAction,
-  toggleDarkModeAction,
 } from 'types';
 
 function* setZoomLevel({ payload }: setZoomLevelAction) {
@@ -25,6 +24,6 @@ function* watchDarkMode() {
   yield takeLatest(TOGGLE_DARK_MODE_REQUESTED, toggleDarkMode);
 }
 
-export default function* saga() {
+export default function* sagas() {
   yield all([watchZoomLevel(), watchDarkMode()]);
 }

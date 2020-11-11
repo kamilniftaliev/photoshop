@@ -10,6 +10,11 @@ import Button from '@material-ui/core/Button';
 // Actions
 import { loadDrawingFromSessionRequest } from 'actions';
 
+/**
+ * The modal that checks if there's a drawing
+ * in local storage and displays a dialog
+ * so that user can continue working on it
+ */
 export default function SessionModal() {
   const [isDialogOpen, setDialogOpen] = useState(false);
 

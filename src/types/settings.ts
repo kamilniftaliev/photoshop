@@ -3,6 +3,7 @@ export const SET_ZOOM_LEVEL_REQUESTED = 'SET_ZOOM_LEVEL_REQUESTED';
 export const TOGGLE_DARK_MODE = 'TOGGLE_DARK_MODE';
 export const TOGGLE_DARK_MODE_REQUESTED = 'TOGGLE_DARK_MODE_REQUESTED';
 
+// State of settings in Redux Store
 export interface SettingsState {
   /**
    * Zoom level of the canvas.

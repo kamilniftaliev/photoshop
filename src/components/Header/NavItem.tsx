@@ -1,16 +1,13 @@
-import React from 'react';
+import React, { SVGProps } from 'react';
 import styled from 'styled-components';
-import { NavLink } from 'react-router-dom';
+import { NavLink, NavLinkProps } from 'react-router-dom';
 
-interface IconProps {
-  width: number;
-  height: number;
-}
-
-interface IProps {
+interface NavItemProps {
+  /** Name of the navigation */
   label?: string;
-  Icon: React.FC<IconProps>;
-  to: string;
+  /** Actual Icon component from 'icons' folder */
+  Icon: React.FC<SVGProps<SVGElement>>;
+  to: NavLinkProps['to'];
 }
 
 const Container = styled(NavLink).attrs(() => ({
@@ -38,7 +35,14 @@ const Label = styled.p`
   margin: 7px 0;
 `;
 
-export default function NavItem({ to, Icon, label }: IProps) {
+/**
+ * Navigation item in the header of the app
+ */
+export default function NavItem({
+  to,
+  Icon,
+  label,
+}: NavItemProps): React.ReactElement {
   return (
     <Container to={to}>
       <Icon width={24} height={24} />

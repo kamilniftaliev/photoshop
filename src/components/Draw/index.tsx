@@ -1,8 +1,8 @@
 import React, { useRef, useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import styled from 'styled-components';
-import FileSaver from 'file-saver';
 
+// The Painter class
 import Painter from './Painter';
 
 // Components
@@ -59,11 +59,16 @@ const CanvasContainer = styled.article`
   overflow: auto;
 `;
 
-interface ICanvasProps {
-  scale: number;
+interface CanvasProps {
+  /**
+   * Using a transient prop here so that
+   * it won't be passed down to actual HTML
+   * element's attribute
+   */
+  $scale: number;
 }
 
-const CanvasElement = styled.canvas<ICanvasProps>`
+const CanvasElement = styled.canvas<CanvasProps>`
   display: block;
   position: absolute;
   left: 0;
@@ -74,7 +79,7 @@ const CanvasElement = styled.canvas<ICanvasProps>`
   margin: auto;
   background-color: #fff;
   box-shadow: 1px 2px 14px 4px rgba(0, 0, 0, 0.6);
-  transform: scale(${({ scale }) => scale});
+  transform: scale(${({ $scale }) => $scale});
   transform-origin: left top;
 `;
 
@@ -83,7 +88,13 @@ interface DrawProps {
   darkMode: SettingsState['darkMode'];
 }
 
-export default function Draw({ toggleDarkMode, darkMode }: DrawProps) {
+/**
+ * Root component of the Draw page
+ */
+export default function Draw({
+  toggleDarkMode,
+  darkMode,
+}: DrawProps): React.ReactElement {
   const canvasElement = useRef(null);
   const painter = useRef(null);
   const dispatch = useDispatch();
@@ -141,7 +152,7 @@ export default function Draw({ toggleDarkMode, darkMode }: DrawProps) {
   const redo = useCallback(() => painter.current.redo(), [painter]);
 
   // Download current drawing as JSON
-  const exportToJSON = useCallback(() => {
+  const exportJSON = useCallback(() => {
     downloadJSONFileWithDrawing(painter.current.getPoints());
   }, [painter]);
 
@@ -184,14 +195,21 @@ export default function Draw({ toggleDarkMode, darkMode }: DrawProps) {
 
   return (
     <Container>
+      {/* Left side of the canvas */}
       <Tools
         selectedTool={selectedTool as Point['tool']}
         setSelectedTool={selectTool}
       />
+
+      {/* Canvas container */}
       <CanvasContainer>
-        <CanvasElement scale={scale} ref={canvasElement} />
+        <CanvasElement $scale={scale} ref={canvasElement} />
       </CanvasContainer>
+
+      {/* Right side of the canvas */}
       <Properties color={color as Point['color']} setColor={setColor} />
+
+      {/* Top panel above the canvas */}
       <Options
         zoomLevel={zoomLevel}
         setZoomLevel={setZoomLevel}
@@ -203,7 +221,7 @@ export default function Draw({ toggleDarkMode, darkMode }: DrawProps) {
         redo={redo}
         canUndo={canUndo}
         canRedo={canRedo}
-        exportToJSON={exportToJSON}
+        exportJSON={exportJSON}
         saveAsImage={saveAsImage}
         importJSON={importJSON}
       />

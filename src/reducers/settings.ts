@@ -12,10 +12,7 @@ const initialState: SettingsState = {
   darkMode: !!darkMode,
 };
 
-export default function reducer(
-  state = initialState,
-  action: SettingsAction
-) {
+export default function reducer(state = initialState, action: SettingsAction) {
   switch (action.type) {
     case SET_ZOOM_LEVEL:
       return {

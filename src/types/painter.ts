@@ -1,3 +1,5 @@
+import { RGBColor } from 'react-color';
+
 export const SELECT_TOOL_REQUESTED = 'SELECT_TOOL_REQUESTED';
 export const SET_COLOR_REQUESTED = 'SET_COLOR_REQUESTED';
 export const SET_BRUSH_SIZE_REQUESTED = 'SET_BRUSH_SIZE_REQUESTED';
@@ -32,7 +34,7 @@ export interface Path {
  * A point/line that can be undone
  */
 export interface Point {
-  /** 
+  /**
    * Array of paths that makes it look like a line
    */
   path: Path[];
@@ -52,14 +54,12 @@ export interface Point {
   /**
    * RGBA color of the "pen" tool
    */
-  color: {
-    r: number;
-    g: number;
-    b: number;
-    a: number;
-  };
+  color: RGBColor;
 }
 
+/**
+ * Redux related state of the painter
+ */
 export interface PainterGlobalState {
   selectedTool?: Point['tool'];
   brushSize?: Point['brushSize'];
@@ -87,7 +87,7 @@ export interface PainterLocalState extends PainterGlobalState {
 
 export interface DrawingSaverData {
   points: PainterLocalState['points'];
-  
+
   /** Whether to disable or enable "Undo" button */
   canUndo: boolean;
 
@@ -95,18 +95,18 @@ export interface DrawingSaverData {
   canRedo: boolean;
 }
 
-
 export interface PainterProps {
   /**
    * The HTML Canvas element that
    * all the painting will happen
    */
   element: HTMLCanvasElement;
-  
+
   points: Point[];
 
   /**
-   * Callback function for saving the drawing
+   * The callback function that will save
+   * the drawing for future use
    */
   saveDrawing: (data: DrawingSaverData) => void;
 }

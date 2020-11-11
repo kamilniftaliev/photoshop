@@ -2,9 +2,9 @@ const webpack = require('webpack');
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
+// For displaying a component's name in Styled Components generated class attribute
 const createStyledComponentsTransformer = require('typescript-plugin-styled-components')
   .default;
-
 const styledComponentsTransformer = createStyledComponentsTransformer();
 
 module.exports = {
@@ -15,6 +15,8 @@ module.exports = {
 
   resolve: {
     extensions: ['.js', '.jsx', '.ts', '.tsx'],
+
+    // Aliases for making importing easy
     alias: {
       modals: path.resolve('./src/components/modals'),
       actions: path.resolve('./src/actions'),
@@ -26,6 +28,9 @@ module.exports = {
       hooks: path.resolve('./src/hooks'),
       selectors: path.resolve('./src/selectors'),
       utils: path.resolve('./src/utils'),
+      
+      // Hot Module Replacement
+      'react-dom': '@hot-loader/react-dom',
     },
   },
 
@@ -33,8 +38,9 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: path.resolve(__dirname, './src/index.html'),
     }),
-    new webpack.HotModuleReplacementPlugin(),
+    // new webpack.HotModuleReplacementPlugin(),
   ],
+
   devServer: {
     historyApiFallback: true,
     contentBase: path.resolve(__dirname, './dist'),
@@ -42,6 +48,7 @@ module.exports = {
     hot: true,
     port: 7777,
   },
+
   module: {
     rules: [
       {

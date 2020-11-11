@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { SVGAttributes } from 'react';
 
-export default function Pen(props) {
+export default function PenIcon(props: SVGAttributes<SVGElement>) {
   return (
     <svg
       version="1.1"

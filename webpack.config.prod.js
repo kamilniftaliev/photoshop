@@ -1,4 +1,3 @@
-const webpack = require('webpack');
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
@@ -9,6 +8,8 @@ module.exports = {
 
   resolve: {
     extensions: ['.js', '.jsx', '.ts', '.tsx'],
+
+    // Aliases for making importing easy
     alias: {
       modals: path.resolve('./src/components/modals'),
       actions: path.resolve('./src/actions'),
@@ -28,10 +29,8 @@ module.exports = {
       template: path.resolve(__dirname, './src/index.html'),
     }),
     new CopyWebpackPlugin({
-      patterns: [
-          { from: 'static' }
-      ]
-    })
+      patterns: [{ from: 'static' }],
+    }),
   ],
   module: {
     rules: [

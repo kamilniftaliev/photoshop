@@ -6,7 +6,7 @@ import {
   SET_BRUSH_SIZE,
 } from 'types';
 
-const initialState: PainterGlobalState = {
+export const painterInitialGlobalState: PainterGlobalState = {
   selectedTool: 'pen',
   brushSize: 10,
   color: {
@@ -18,7 +18,7 @@ const initialState: PainterGlobalState = {
 };
 
 export default function reducer(
-  state = initialState,
+  state = painterInitialGlobalState,
   { type, payload }: PainterActionTypes
 ) {
   switch (type) {
